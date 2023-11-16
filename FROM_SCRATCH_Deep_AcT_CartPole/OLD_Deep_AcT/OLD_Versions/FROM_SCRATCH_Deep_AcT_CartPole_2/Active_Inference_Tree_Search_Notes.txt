@@ -1,0 +1,88 @@
+
+ACTIVE INFERENCE TREE SEARCH:
+
+Active Inference Tree Search (AcT) is a planning algorithm for Active Inference
+
+The goal of AcT is to construct a planning tree which consists of nodes - corresponding to states - joined by edges - corresponding to actions. Trajectories through this tree correspond to a particular policy: pi^1 = [node_{n}, node_{n+1}, ..., node_{n+T-1}]
+where T is the "planning horizon". 
+
+AcT proceeds in four stages: Variational Inference, Expansion, Evaluation and Path Integration.
+
+
+1. Variational Inference:
+The goal of the first stage is to select the next non-terminal leaf node of the tree to expand.
+
+Proceeding recursively from the root node and until reaching an expandable node of the planning tree, this stage samples an action from a Boltzmann distribution: a_t ~ 𝜎 (𝜅𝑝 ln 𝐄 − 𝛾𝜏 ∙ G(𝜋𝜏 , 𝑣𝜏 )) which depends on three terms:
+	* The EFE of the node: G(pi_t, node_t)
+		- where pi_t is the policy so far
+	* The precision: gamma_t:
+		- computed at each depth of the tree visit
+	* The prior belief about the policy: E
+		- E has the following pdf: sqrt( 2*ln(N(node)) / N(child_node) )
+		- "child_node" is one of the child nodes of "node"
+		- N(node) = the number of visits to node. 
+
+G(𝜋𝜏 , 𝑣𝜏 ) = (𝐀 ∙ 𝐱_𝜏 ) ∙ (ln( 𝐀 ∙ 𝐱_𝜏 ) − ln 𝐂) + 𝐱_𝜏 ∙ (∑_𝑖 (𝐀𝑖𝑗 ln 𝐀𝑖𝑗) )_𝑗
+
+G(𝜋𝜏 , 𝑣𝜏 ) = 𝔼_{𝑄̃ }[ln 𝑄(𝑠𝜏 |𝜋) − ln 𝑃(𝑜𝜏 , 𝑠𝜏 |𝜋, 𝐶)]
+		   = −𝐷KL [𝑄(𝑜𝜏 |𝜋)||𝑃(𝑜𝜏)] − 𝔼_{𝑄̃ }[𝐻[𝑃(𝑜𝜏 |𝑠𝜏 )]]
+
+G(𝜋𝜏) = 𝒐^𝜋_𝜏 ⋅ (ln 𝒐^𝜋_𝜏 − ln 𝑃(𝑜_𝜏 )) + 𝒔^𝜋_𝜏 ⋅ 𝐇 where:
+
+𝒔^𝜋_𝜏 = 𝐁(𝑢𝜏 = 𝜋^(𝜏) ) ∙ 𝑠_𝜏
+𝒐^𝜋_𝜏 = 𝐀 ∙ 𝒔^𝜋_𝜏
+ln 𝑃(𝑜_𝜏) = ln 𝐂
+𝐇 = −diag(𝐀 ∙ ln 𝐀)
+
+𝔼_{𝑄̃ }[∙] is the expected value under the predicted posterior distribution 𝑄̃ = 𝑄(𝑜𝜏 , 𝑠𝜏 |𝜋) ≜ 𝑃(𝑜𝜏 |𝑠𝜏 )𝑄(𝑠𝜏 |𝜋) over hidden states and their outcomes under a specific policy 𝜋.
+
+Variational Inference selects a pre-exiting node. 
+
+
+2. Expansion:
+The goal of the second stage is to expand the non-terminal leaf node selected in stage 1. 
+
+Expansion of a leaf node involves instantiating a new child node: child_node, by implementing a random action: a_prime from among those actions previously unused to effect a transition from the leaf node in question. Each of these child nodes corresponds to a future state that the agent can visit according to the transitions defined in the transition model.
+
+child_node is then assigned as a child to the leaf node. Expansion creates a new node. 
+
+
+3. Evaluation:
+The goal of the third stage is to assign an EFE-value to the leaf node expanded in stage 2. 
+
+The evaluation stage computes the EFE: G(*, node_t) which is a function of the state and the observation associated with node_t. Hence G(*, node_t) scores the EFE of the node: node_t, not the sum of all the EFEs of all the nodes from the root node to node_t. 
+
+The EFE: G(*, node_t) is then weighted by its "temporal precision": a discount factor equal to delta^t, in which delta is an arbitrary parameter and t is the depth of the node node_t. the resulting G_Delta = delta^t * G(*, node_t) called "predictive EFE" is then assigned to node_t. 
+
+
+4. Path Integration:
+The goal of the fourth stage is to adjust the - predictive? - EFE values of all tree nodes constituting the current history (policy) from the root to the newly expanded and evaluated node. This is done by considering the new predictive EFE-value obtained from the thrid stage.
+
+The predictive EFE-value estimated by the evaluation stage is used to update the quality - predictive EFE? - and the number of visits N of the nodes that constitute the present history from the root, obtainted from stages 1 and 2. 
+
+
+
+
+
+
+
+QUESTIONS:
+
+1. Evaluation:
+	* "The evaluation stage computes the EFE: G(*, node_t) which is a function of the state and the observation associated with node_t."
+		- all the formulas given take the observations, states and state beliefs as inputs.
+
+2. Is the approximation of the EFE of policy pi as simple as predicting the EFE for each action in this policy - along the specific node history - and then summing these back up from the leaf to the root? 
+	* Assume a neural network approximation for the EFE of an action: a_t - a constituent in a policy - f_\psi. Hence:
+		- f_\psi(a_t) = predicted EFE of a_t or:
+		- f_\psi(a_t, node_t) = predicted EFE of a_t performed in state s_t (tentatively favour this one).
+	* Could this network be trained via gradient descent on the MSE of the predicted EFE and the "actual" or "resulting" VFE?
+		- L_t = MSE({predicted EFE of performing a_t in s_t}, {actual VFE of performing a_t in s_t (after the fact)})
+
+3. Equation 61: G^agg(a_t, s_t) = G^local(a_t, s_t) + Expectation_{q(a_{t+1}, s_{t+1} | a_t, s_t)}G^agg(a_{t+1}, s_{t+1}) 
+	* build a neural network predictor for Expectation_{q(a_{t+1}, s_{t+1} | a_t, s_t)}G^agg(a_{t+1}, s_{t+1}), hence:
+		- f_\psi = Expectation_{q(a_{t+1}, s_{t+1} | a_t, s_t)}G^agg(a_{t+1}, s_{t+1}) 
+	* Thus:
+		- G^agg(a_t, s_t) = G^local(a_t, s_t) + f_\psi
+
+4. 
