@@ -163,7 +163,8 @@ class ReplayMemory():
 
 class Model(nn.Module):
     
-    def __init__(self, n_inputs, n_outputs, n_hidden=64, lr=1e-3, softmax=False, device='cpu'):
+    # def __init__(self, n_inputs, n_outputs, n_hidden=64, lr=1e-3, softmax=False, device='cpu'):
+    def __init__(self, n_inputs, n_outputs, n_hidden=64, lr=1e-3, softmax=False, device='cuda:0'):
         super(Model, self).__init__()
         
         self.n_inputs = n_inputs # Number of inputs
@@ -236,7 +237,7 @@ class Agent():
     def set_parameters(self, argv):
         
         # The default parameters
-        default_parameters = {'run_id':"_rX", 'device':'cpu',
+        default_parameters = {'run_id':"_rX", 'device':'cuda:0', # 'device':'cpu',
               'env':'CartPole-v1', 'n_episodes':5000, 
               'n_hidden_trans':64, 'lr_trans':1e-3, 
               'n_hidden_pol':64, 'lr_pol':1e-3, 
@@ -610,6 +611,11 @@ class Agent():
         print(msg)
         if self.keep_log:
             self.record.write(msg+"\n")
+
+        if torch.cuda.is_available():
+            print(f'CUDA is available on device: {torch.cuda.get_device_name(0)}')
+        else:
+            print('CUDA is NOT Available')
         
         results = []
         for ith_episode in range(self.n_episodes):
