@@ -15,6 +15,31 @@ import torchvision.transforms as T
 from PIL import Image
 import matplotlib.pyplot as plt
 
+
+def plot_learning_curve(x, scores, figure_file, version):
+    # Calculate the moving average and standard deviation
+    running_avg = np.zeros(len(scores))
+    stds = np.zeros(len(scores))
+    for i in range(len(running_avg)):
+        running_avg[i] = np.mean(scores[max(0, i - 100):(i + 1)])
+        stds[i] = np.std(scores[max(0, i - 100):(i + 1)])
+    
+    # Create a figure and plot the moving average
+    plt.figure(figsize=(12, 6))
+    plt.plot(x, running_avg, label='100 episode MAVG of scores', color='b')
+    
+    # Plot the standard deviation bands
+    plt.fill_between(x, running_avg - stds, running_avg + stds, color='b', alpha=0.3, label='Standard Deviation')
+    
+    # plt.title(f"100 episode MAVG of scores with Standard Deviation: {version}")
+    plt.xlabel('Episodes')
+    plt.ylabel('Score')
+    plt.legend()
+    
+    # Save or display the plot
+    plt.show()
+    plt.savefig(figure_file)
+
 class ReplayMemory():
     
     def __init__(self, capacity, obs_shape, device='cpu'):
@@ -314,7 +339,7 @@ class Agent():
         
         # The default parameters
         default_parameters = {'run_id':"_rX", 'device':'cpu', # 'device':'cuda',
-              'env':'CartPole-v1', 'n_episodes':5000, 
+              'env':'CartPole-v1', 'n_episodes':1000, 
               'n_screens':4, 'n_latent_states':32, 'lr_vae':1e-5, 'alpha':25000,
               'n_hidden_trans':64, 'lr_trans':1e-3,
               'n_hidden_pol':64, 'lr_pol':1e-3,
@@ -326,6 +351,7 @@ class Agent():
               'save_results':True, 'results_path':"results/ai_pomdp_results{}.npz", 'results_save_timer':500,
               'save_network':True, 'network_save_path':"networks/ai_pomdp_{}net{}.pth", 'network_save_timer':500,
               'load_network':False, 'network_load_path':"networks/ai_pomdp_{}net_rX.pth",
+              # 'pre_train_vae':False, 'pt_vae_n_episodes':500, 'pt_vae_plot':False,
               'pre_train_vae':False, 'pt_vae_n_episodes':500, 'pt_vae_plot':False,
               'load_pre_trained_vae':True, 'pt_vae_load_path':"networks/pre_trained_vae/vae_n{}_end.pth"}
         # Possible commands:
@@ -644,17 +670,18 @@ class Agent():
             
             self.env.reset()
             obs = self.get_screen(self.env, self.device)
-            done = False
-            while not done:
+            terminated = False
+            truncated = False
+            while not (terminated or truncated):
                 
                 action = self.env.action_space.sample()
-                self.memory.push(obs, -99, -99, done)
+                self.memory.push(obs, -99, -99, terminated, truncated)
                 
-                _, _, done, _ = self.env.step(action)
+                _, _, terminated, truncated, _ = self.env.step(action)
                 obs = self.get_screen(self.env, self.device)
                 
                 if self.memory.push_count > vae_batch_size + self.n_screens*2:
-                    obs_batch, _, _, _ = self.memory.sample(vae_obs_indices, [], [], [], len(vae_obs_indices), vae_batch_size)
+                    obs_batch, _, _, _, _ = self.memory.sample(vae_obs_indices, [], [], [], [], len(vae_obs_indices), vae_batch_size)
                     obs_batch = obs_batch.view(vae_batch_size, self.c, self.h, self.w, self.n_screens)
                     
                     recon, mu, logvar = self.vae.forward(obs_batch, vae_batch_size)
@@ -667,7 +694,7 @@ class Agent():
                     losses.append(loss)
                     print("episode %4d: vae_loss=%5.2f"%(ith_episode, loss.item()))
                     
-                    if done:
+                    if (terminated or truncated):
                         if ith_episode > 0 and ith_episode % 10 > 0 and self.pt_vae_plot:
                             plt.plot(losses)
                             plt.show()
@@ -679,8 +706,8 @@ class Agent():
                                 plt.imshow(recon[0, :, :, :, i].detach().cpu().squeeze(0).permute(1, 2, 0).numpy(), interpolation='none')
                                 plt.show()
                 
-                if done:
-                    self.memory.push(obs, -99, -99, done)
+                if (terminated or truncated):
+                    self.memory.push(obs, -99, -99, terminated, truncated)
                     
                     if ith_episode > 0 and ith_episode % 100 == 0:
                         torch.save(self.vae.state_dict(), "networks/pre_trained_vae/vae_n{}_{:d}.pth".format(
@@ -690,6 +717,9 @@ class Agent():
         torch.save(self.vae.state_dict(), "networks/pre_trained_vae/vae_n{}_end.pth".format(self.n_latent_states))
             
     def train(self):
+
+        filename = f"Deep_AIF_MDP_Cart_Pole_v1"
+        figure_file = f"plots/{filename}.png"
         
         if self.pre_train_vae: # If True: pre-train the VAE
             msg = "Environment is: {}\nPre-training vae. Starting at {}".format(self.env.unwrapped.spec.id, datetime.datetime.now())
@@ -702,6 +732,11 @@ class Agent():
         print(msg)
         if self.keep_log:
             self.record.write(msg+"\n")
+
+        if torch.cuda.is_available():
+            print(f'CUDA is available on device: {torch.cuda.get_device_name(0)}')
+        else:
+            print('CUDA is NOT Available')
         
         results = []
         for ith_episode in range(self.n_episodes):
@@ -709,6 +744,11 @@ class Agent():
             total_reward = 0
             self.env.reset()
             obs = self.get_screen(self.env, self.device)
+
+            # print(f"\ntype(obs): {type(obs)}")
+            # print(f"obs: {obs}\n")
+            # breakpoint()
+
             # done = False
             terminated = False
             truncated = False
@@ -767,10 +807,20 @@ class Agent():
         if self.keep_log:
             self.record.write(msg)
             self.record.close()
+
+        x = [i + 1 for i in range(agent.n_episodes)]
+        plot_learning_curve(x, results, figure_file, "AcT Action Selection")
                 
 if __name__ == "__main__":
+
+    # filename = f"Deep_AIF_MDP_Cart_Pole_v1"
+    # figure_file = f"plots/{filename}.png"
+
     agent = Agent(sys.argv[1:])
     agent.train()
+
+    # x = [i + 1 for i in range(agent.n_episodes)]
+    # plot_learning_curve(x, agent.results, figure_file, "AcT Action Selection")
 
 
 
