@@ -3,6 +3,8 @@ __credits__ = "Otto van der Himst, Pablo Lanillos"
 __version__ = "1.0"
 __email__ = "o.vanderhimst@student.ru.nl"
 
+# the sensor uncertainty branch
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -265,11 +267,15 @@ class VAE(nn.Module):
 
     # Reconstruction + KL divergence losses summed over all elements and batch
     def loss_function(self, recon_x, x, mu, logvar, batch=True):
+        '''
+        Returns the ELBO
+        '''
         if batch:
             BCE = F.binary_cross_entropy(recon_x, x, reduction='none')
             BCE = torch.sum(BCE, dim=(1, 2, 3, 4))
             
             KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1)
+
         else:
             BCE = F.binary_cross_entropy(recon_x, x, reduction='sum')
             # see Appendix B from VAE paper:
