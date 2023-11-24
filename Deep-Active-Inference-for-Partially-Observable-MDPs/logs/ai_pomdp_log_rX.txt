@@ -296,3 +296,149 @@ Custom parameters:
 
 Environment is: CartPole-v1
 Training started at 2023-11-23 19:15:11.692495
+
+
+-----------------------------------------------------------------
+File opened at 2023-11-24 15:08:59.660207
+Default parameters:
+{'run_id': '_rX', 'device': 'cpu', 'env': 'CartPole-v1', 'n_episodes': 1000, 'n_screens': 4, 'n_latent_states': 32, 'lr_vae': 1e-05, 'alpha': 25000, 'n_hidden_trans': 64, 'lr_trans': 0.001, 'n_hidden_pol': 64, 'lr_pol': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 32, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 12.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_pomdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_pomdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_pomdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_pomdp_{}net_rX.pth', 'pre_train_vae': False, 'pt_vae_n_episodes': 500, 'pt_vae_plot': False, 'load_pre_trained_vae': True, 'pt_vae_load_path': 'networks/pre_trained_vae/vae_n{}_end.pth'}
+Custom parameters:
+
+
+
+-----------------------------------------------------------------
+File opened at 2023-11-24 15:11:03.173952
+Default parameters:
+{'run_id': '_rX', 'device': 'cpu', 'env': 'CartPole-v1', 'n_episodes': 1000, 'n_screens': 4, 'n_latent_states': 32, 'lr_vae': 1e-05, 'alpha': 25000, 'n_hidden_trans': 64, 'lr_trans': 0.001, 'n_hidden_pol': 64, 'lr_pol': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 32, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 12.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_pomdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_pomdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_pomdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_pomdp_{}net_rX.pth', 'pre_train_vae': False, 'pt_vae_n_episodes': 500, 'pt_vae_plot': False, 'load_pre_trained_vae': True, 'pt_vae_load_path': 'networks/pre_trained_vae/vae_n{}_end.pth'}
+Custom parameters:
+
+
+
+-----------------------------------------------------------------
+File opened at 2023-11-24 15:12:20.503840
+Default parameters:
+{'run_id': '_rX', 'device': 'cpu', 'env': 'CartPole-v1', 'n_episodes': 1000, 'n_screens': 4, 'n_latent_states': 32, 'lr_vae': 1e-05, 'alpha': 25000, 'n_hidden_trans': 64, 'lr_trans': 0.001, 'n_hidden_pol': 64, 'lr_pol': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 32, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 12.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_pomdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_pomdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_pomdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_pomdp_{}net_rX.pth', 'pre_train_vae': False, 'pt_vae_n_episodes': 500, 'pt_vae_plot': False, 'load_pre_trained_vae': True, 'pt_vae_load_path': 'networks/pre_trained_vae/vae_n{}_end.pth'}
+Custom parameters:
+
+
+
+-----------------------------------------------------------------
+File opened at 2023-11-24 15:39:53.366579
+Default parameters:
+{'run_id': '_rX', 'device': 'cpu', 'env': 'CartPole-v1', 'n_episodes': 1000, 'n_screens': 4, 'n_latent_states': 32, 'lr_vae': 1e-05, 'alpha': 25000, 'n_hidden_trans': 64, 'lr_trans': 0.001, 'n_hidden_pol': 64, 'lr_pol': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 32, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 12.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_pomdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_pomdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_pomdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_pomdp_{}net_rX.pth', 'pre_train_vae': True, 'pt_vae_n_episodes': 500, 'pt_vae_plot': False, 'load_pre_trained_vae': False, 'pt_vae_load_path': 'networks/pre_trained_vae/vae_n{}_end.pth'}
+Custom parameters:
+
+Environment is: CartPole-v1
+Pre-training vae. Starting at 2023-11-24 15:39:53.369057
+
+
+
+
+-----------------------------------------------------------------
+File opened at 2023-11-24 15:40:13.989864
+Default parameters:
+{'run_id': '_rX', 'device': 'cpu', 'env': 'CartPole-v1', 'n_episodes': 1000, 'n_screens': 4, 'n_latent_states': 32, 'lr_vae': 1e-05, 'alpha': 25000, 'n_hidden_trans': 64, 'lr_trans': 0.001, 'n_hidden_pol': 64, 'lr_pol': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 32, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 12.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_pomdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_pomdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_pomdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_pomdp_{}net_rX.pth', 'pre_train_vae': True, 'pt_vae_n_episodes': 500, 'pt_vae_plot': False, 'load_pre_trained_vae': False, 'pt_vae_load_path': 'networks/pre_trained_vae/vae_n{}_end.pth'}
+Custom parameters:
+
+Environment is: CartPole-v1
+Pre-training vae. Starting at 2023-11-24 15:40:13.992148
+
+
+
+-----------------------------------------------------------------
+File opened at 2023-11-24 15:42:27.384763
+Default parameters:
+{'run_id': '_rX', 'device': 'cpu', 'env': 'CartPole-v1', 'n_episodes': 1000, 'n_screens': 4, 'n_latent_states': 32, 'lr_vae': 1e-05, 'alpha': 25000, 'n_hidden_trans': 64, 'lr_trans': 0.001, 'n_hidden_pol': 64, 'lr_pol': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 32, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 12.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_pomdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_pomdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_pomdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_pomdp_{}net_rX.pth', 'pre_train_vae': True, 'pt_vae_n_episodes': 500, 'pt_vae_plot': False, 'load_pre_trained_vae': False, 'pt_vae_load_path': 'networks/pre_trained_vae/vae_n{}_end.pth'}
+Custom parameters:
+
+Environment is: CartPole-v1
+Pre-training vae. Starting at 2023-11-24 15:42:27.387152
+
+
+
+-----------------------------------------------------------------
+File opened at 2023-11-24 15:42:56.419045
+Default parameters:
+{'run_id': '_rX', 'device': 'cpu', 'env': 'CartPole-v1', 'n_episodes': 1000, 'n_screens': 4, 'n_latent_states': 32, 'lr_vae': 1e-05, 'alpha': 25000, 'n_hidden_trans': 64, 'lr_trans': 0.001, 'n_hidden_pol': 64, 'lr_pol': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 32, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 12.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_pomdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_pomdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_pomdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_pomdp_{}net_rX.pth', 'pre_train_vae': True, 'pt_vae_n_episodes': 500, 'pt_vae_plot': False, 'load_pre_trained_vae': False, 'pt_vae_load_path': 'networks/pre_trained_vae/vae_n{}_end.pth'}
+Custom parameters:
+
+Environment is: CartPole-v1
+Pre-training vae. Starting at 2023-11-24 15:42:56.421304
+
+
+
+-----------------------------------------------------------------
+File opened at 2023-11-24 15:43:34.025501
+Default parameters:
+{'run_id': '_rX', 'device': 'cpu', 'env': 'CartPole-v1', 'n_episodes': 1000, 'n_screens': 4, 'n_latent_states': 32, 'lr_vae': 1e-05, 'alpha': 25000, 'n_hidden_trans': 64, 'lr_trans': 0.001, 'n_hidden_pol': 64, 'lr_pol': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 32, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 12.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_pomdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_pomdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_pomdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_pomdp_{}net_rX.pth', 'pre_train_vae': True, 'pt_vae_n_episodes': 500, 'pt_vae_plot': False, 'load_pre_trained_vae': False, 'pt_vae_load_path': 'networks/pre_trained_vae/vae_n{}_end.pth'}
+Custom parameters:
+
+Environment is: CartPole-v1
+Pre-training vae. Starting at 2023-11-24 15:43:34.027925
+
+
+
+-----------------------------------------------------------------
+File opened at 2023-11-24 15:44:30.250977
+Default parameters:
+{'run_id': '_rX', 'device': 'cpu', 'env': 'CartPole-v1', 'n_episodes': 1000, 'n_screens': 4, 'n_latent_states': 32, 'lr_vae': 1e-05, 'alpha': 25000, 'n_hidden_trans': 64, 'lr_trans': 0.001, 'n_hidden_pol': 64, 'lr_pol': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 32, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 12.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_pomdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_pomdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_pomdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_pomdp_{}net_rX.pth', 'pre_train_vae': True, 'pt_vae_n_episodes': 500, 'pt_vae_plot': False, 'load_pre_trained_vae': False, 'pt_vae_load_path': 'networks/pre_trained_vae/vae_n{}_end.pth'}
+Custom parameters:
+
+Environment is: CartPole-v1
+Pre-training vae. Starting at 2023-11-24 15:44:30.253405
+
+
+
+-----------------------------------------------------------------
+File opened at 2023-11-24 15:44:59.211224
+Default parameters:
+{'run_id': '_rX', 'device': 'cpu', 'env': 'CartPole-v1', 'n_episodes': 1000, 'n_screens': 4, 'n_latent_states': 32, 'lr_vae': 1e-05, 'alpha': 25000, 'n_hidden_trans': 64, 'lr_trans': 0.001, 'n_hidden_pol': 64, 'lr_pol': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 32, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 12.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_pomdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_pomdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_pomdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_pomdp_{}net_rX.pth', 'pre_train_vae': True, 'pt_vae_n_episodes': 500, 'pt_vae_plot': False, 'load_pre_trained_vae': False, 'pt_vae_load_path': 'networks/pre_trained_vae/vae_n{}_end.pth'}
+Custom parameters:
+
+Environment is: CartPole-v1
+Pre-training vae. Starting at 2023-11-24 15:44:59.213483
+
+
+
+-----------------------------------------------------------------
+File opened at 2023-11-24 15:45:23.687422
+Default parameters:
+{'run_id': '_rX', 'device': 'cpu', 'env': 'CartPole-v1', 'n_episodes': 1000, 'n_screens': 4, 'n_latent_states': 32, 'lr_vae': 1e-05, 'alpha': 25000, 'n_hidden_trans': 64, 'lr_trans': 0.001, 'n_hidden_pol': 64, 'lr_pol': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 32, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 12.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_pomdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_pomdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_pomdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_pomdp_{}net_rX.pth', 'pre_train_vae': True, 'pt_vae_n_episodes': 500, 'pt_vae_plot': False, 'load_pre_trained_vae': False, 'pt_vae_load_path': 'networks/pre_trained_vae/vae_n{}_end.pth'}
+Custom parameters:
+
+Environment is: CartPole-v1
+Pre-training vae. Starting at 2023-11-24 15:45:23.689679
+
+
+
+-----------------------------------------------------------------
+File opened at 2023-11-24 15:46:10.187263
+Default parameters:
+{'run_id': '_rX', 'device': 'cpu', 'env': 'CartPole-v1', 'n_episodes': 1000, 'n_screens': 4, 'n_latent_states': 32, 'lr_vae': 1e-05, 'alpha': 25000, 'n_hidden_trans': 64, 'lr_trans': 0.001, 'n_hidden_pol': 64, 'lr_pol': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 32, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 12.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_pomdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_pomdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_pomdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_pomdp_{}net_rX.pth', 'pre_train_vae': True, 'pt_vae_n_episodes': 500, 'pt_vae_plot': False, 'load_pre_trained_vae': False, 'pt_vae_load_path': 'networks/pre_trained_vae/vae_n{}_end.pth'}
+Custom parameters:
+
+Environment is: CartPole-v1
+Pre-training vae. Starting at 2023-11-24 15:46:10.189521
+
+
+
+-----------------------------------------------------------------
+File opened at 2023-11-24 15:46:39.088462
+Default parameters:
+{'run_id': '_rX', 'device': 'cpu', 'env': 'CartPole-v1', 'n_episodes': 1000, 'n_screens': 4, 'n_latent_states': 32, 'lr_vae': 1e-05, 'alpha': 25000, 'n_hidden_trans': 64, 'lr_trans': 0.001, 'n_hidden_pol': 64, 'lr_pol': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 32, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 12.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_pomdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_pomdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_pomdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_pomdp_{}net_rX.pth', 'pre_train_vae': True, 'pt_vae_n_episodes': 500, 'pt_vae_plot': False, 'load_pre_trained_vae': False, 'pt_vae_load_path': 'networks/pre_trained_vae/vae_n{}_end.pth'}
+Custom parameters:
+
+Environment is: CartPole-v1
+Pre-training vae. Starting at 2023-11-24 15:46:39.090707
+
+
+
+-----------------------------------------------------------------
+File opened at 2023-11-24 15:51:29.950187
+Default parameters:
+{'run_id': '_rX', 'device': 'cpu', 'env': 'CartPole-v1', 'n_episodes': 1000, 'n_screens': 4, 'n_latent_states': 32, 'lr_vae': 1e-05, 'alpha': 25000, 'n_hidden_trans': 64, 'lr_trans': 0.001, 'n_hidden_pol': 64, 'lr_pol': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 32, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 12.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_pomdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_pomdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_pomdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_pomdp_{}net_rX.pth', 'pre_train_vae': True, 'pt_vae_n_episodes': 500, 'pt_vae_plot': False, 'load_pre_trained_vae': False, 'pt_vae_load_path': 'networks/pre_trained_vae/vae_n{}_end.pth'}
+Custom parameters:
+
+Environment is: CartPole-v1
+Pre-training vae. Starting at 2023-11-24 15:51:29.952432
+
