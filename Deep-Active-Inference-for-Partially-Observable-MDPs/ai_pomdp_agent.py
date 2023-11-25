@@ -486,6 +486,7 @@ class Agent():
         with torch.no_grad():
             # Derive a distribution over states state from the last n observations (screens):
             prev_n_obs = self.memory.get_last_n_obs(self.n_screens-1)
+
             x = torch.cat((prev_n_obs, obs), dim=0).view(1, self.c, self.h, self.w, self.n_screens)
             state_mu, state_logvar = self.vae.encode(x)
             
