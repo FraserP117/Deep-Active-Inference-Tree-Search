@@ -416,7 +416,7 @@ class Agent():
         
         # The default parameters
         default_parameters = {'run_id':"_rX", 'device':'cpu', # 'device':'cuda',
-              'env':'CartPole-v1', 'n_episodes':1000, 
+              'env':'CartPole-v1', 'n_episodes':2000, 
               'n_screens':4, 'n_latent_states':32, 'lr_vae':1e-5, 'alpha':25000,
               'n_hidden_trans':64, 'lr_trans':1e-3,
               'n_hidden_pol':64, 'lr_pol':1e-3,
@@ -577,18 +577,17 @@ class Agent():
             # Derive a distribution over states from the last n observations (vectors):
             prev_n_obs = self.memory.get_last_n_obs(self.n_screens - 1)
 
-            print(f"\nprev_n_obs: {prev_n_obs}")
-            print(f"obs: {obs}")
+            # Add a batch dimension to the obs
+            obs_reshaped = obs.unsqueeze(0)
 
-            x = torch.cat((prev_n_obs, obs), dim=0).view(1, -1)  # Flatten the input vectors
-
-            print(f"x: {x}\n")
+            x = torch.cat((prev_n_obs, obs_reshaped), dim=0).view(1, -1)  # Flatten the input vectors
 
             state_mu, state_logvar = self.vae.encode(x)
             
             # Determine a distribution over actions given the current observation:
             x = torch.cat((state_mu, torch.exp(state_logvar)), dim=1)
             policy = self.policy_net(x)
+
             return torch.multinomial(policy, 1)
 
     # OG VERSION:
@@ -718,8 +717,12 @@ class Agent():
         pred_batch_t0t1 = self.transition_net(X)
 
         # Determine the prediction error wrt time t0-t1:
-        pred_error_batch_t0t1 = torch.mean(F.mse_loss(
-                pred_batch_t0t1, state_mu_batch_t1, reduction='none'), dim=1).unsqueeze(1)
+        # WANT TO REPLACVE WITH KL DIVERGENCE EVENTUIUALLY
+        pred_error_batch_t0t1 = torch.mean(
+            F.mse_loss(
+                pred_batch_t0t1, state_mu_batch_t1, reduction='none'
+            ), dim=1
+        ).unsqueeze(1)
 
         return (state_batch_t1, state_batch_t2, action_batch_t1,
                 reward_batch_t1, terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
@@ -729,9 +732,11 @@ class Agent():
     # def compute_value_net_loss(self, state_batch_t1, state_batch_t2,
     #                        action_batch_t1, reward_batch_t1,
     #                        done_batch_t2, pred_error_batch_t0t1):
-    def compute_value_net_loss(self, state_batch_t1, state_batch_t2,
-                           action_batch_t1, reward_batch_t1,
-                           terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1):
+    def compute_value_net_loss(
+        self, state_batch_t1, state_batch_t2,
+        action_batch_t1, reward_batch_t1,
+        terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1
+    ):
     
         with torch.no_grad():
             # Determine the action distribution for time t2:
@@ -779,6 +784,7 @@ class Agent():
         
         # Determine the VFE, then take the mean over all batch samples:
         VFE_batch = vae_loss + pred_error_batch_t0t1 + (energy_term_batch - entropy_batch)
+        
         VFE = torch.mean(VFE_batch)
         
         return VFE
@@ -809,7 +815,8 @@ class Agent():
         # print(f"learn - type(truncated_batch_t2): {type(truncated_batch_t2)}\n")
         
         # Determine the reconstruction loss for time t1
-        recon_batch = self.vae.decode(z_batch_t1, self.batch_size)
+        # recon_batch = self.vae.decode(z_batch_t1, self.batch_size)
+        recon_batch = self.vae.decode(z_batch_t1)
         vae_loss = self.vae.loss_function(recon_batch, obs_batch_t1, state_mu_batch_t1, state_logvar_batch_t1, batch=True) / self.alpha
         
         # Compute the value network loss:
@@ -931,7 +938,7 @@ class Agent():
         else:
             print('CUDA is NOT Available')
 
-        noise_std = 0.05
+        noise_std = 0.1
         
         results = []
         for ith_episode in range(self.n_episodes):
