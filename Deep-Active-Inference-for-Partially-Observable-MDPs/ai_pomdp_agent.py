@@ -342,7 +342,7 @@ class VAE(nn.Module):
         '''
         Returns the ELBO
         '''
-        if batch:
+        if batch: 
             BCE = F.binary_cross_entropy(recon_x.view(-1, self.total_input_size),
                                          x.view(-1, self.total_input_size), reduction='sum')
             KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
@@ -784,7 +784,7 @@ class Agent():
         
         # Determine the VFE, then take the mean over all batch samples:
         VFE_batch = vae_loss + pred_error_batch_t0t1 + (energy_term_batch - entropy_batch)
-        
+
         VFE = torch.mean(VFE_batch)
         
         return VFE
