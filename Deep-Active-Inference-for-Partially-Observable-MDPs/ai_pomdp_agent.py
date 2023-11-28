@@ -176,6 +176,62 @@ class Model(nn.Module):
         
         return y
 
+class MVGaussianModel(nn.Module):
+
+    # def __init__(self, n_inputs, n_outputs, n_hidden, lr=1e-3, dropout_prob=0.0, device='cuda:0', model=None):
+    def __init__(self, n_inputs, n_outputs, n_hidden, lr=1e-3, device='cpu'):
+
+        super(MVGaussianModel, self).__init__()
+
+        self.n_inputs = n_inputs
+        self.n_outputs = n_outputs
+        self.n_hidden = n_hidden
+
+        self.fc1 = nn.Linear(n_inputs, n_hidden)
+        self.fc2 = nn.Linear(n_hidden, n_hidden)
+
+        self.mean_fc = nn.Linear(n_hidden, n_outputs)
+        self.stdev = nn.Linear(n_hidden, n_outputs)
+
+        self.optimizer = optim.Adam(self.parameters(), lr)
+        self.device = device
+        self.to(self.device)
+
+    # def forward(self, x):
+
+    #     x_1 = torch.relu(self.fc1(x))
+
+    #     x_2 = torch.relu(self.fc2(x_1))
+
+    #     mean = self.mean_fc(x_2)
+    #     var = self.stdev(x_2) ** 2
+
+    #     return mean, var
+
+    def forward(self, x):
+
+        x_1 = torch.relu(self.fc1(x))
+
+        x_2 = torch.relu(self.fc2(x_1))
+
+        mean = self.mean_fc(x_2)
+        log_var = 2 * torch.log(self.stdev(x_2))
+
+        return mean, log_var
+
+    def to_var(self, log_var):
+        '''
+        Turn a log variance into a variance
+        '''
+        return torch.exp(0.5 * log_var)
+
+    def reparameterize(self, mean, var):
+        std = torch.sqrt(var)
+        epsilon = torch.randn_like(std)  # Sample from standard Gaussian
+        sampled_value = mean + epsilon * std  # Reparameterization trick
+
+        return sampled_value
+
 # class VAE(nn.Module):
 #     # In part taken from:
 #     #   https://github.com/pytorch/examples/blob/master/vae/main.py
@@ -374,9 +430,13 @@ class Agent():
         # Initialize the networks:
         # self.vae = VAE(self.n_screens, self.n_latent_states, lr=self.lr_vae, device=self.device)
         self.vae = VAE(self.obs_shape[0], self.n_screens, self.n_latent_states, lr=self.lr_vae, device=self.device)
-        self.transition_net = Model(self.n_latent_states*2+1, self.n_latent_states, self.n_hidden_trans, lr=self.lr_trans, device=self.device)
+
+        # self.transition_net = Model(self.n_latent_states*2+1, self.n_latent_states, self.n_hidden_trans, lr=self.lr_trans, device=self.device)
+        self.transition_net = MVGaussianModel(self.n_latent_states*2+1, self.n_latent_states, self.n_hidden_trans, lr=self.lr_trans, device=self.device)
+
         self.policy_net = Model(self.n_latent_states*2, self.n_actions, self.n_hidden_pol, lr=self.lr_pol, softmax=True, device=self.device)
         self.value_net = Model(self.n_latent_states*2, self.n_actions, self.n_hidden_val, lr=self.lr_val, device=self.device)
+
         self.target_net = Model(self.n_latent_states*2, self.n_actions, self.n_hidden_val, lr=self.lr_val, device=self.device)
         self.target_net.load_state_dict(self.value_net.state_dict())
             
@@ -684,6 +744,16 @@ class Agent():
     #             obs_batch_t1, state_mu_batch_t1,
     #             state_logvar_batch_t1, z_batch_t1)
 
+    def kl_div(self, mu_1, sigma_sq_1, mu_2, sigma_sq_2):
+        '''
+        Calculates the KL Divergence between P(mu_1, sigma_sq_1) and Q(mu_2, sigma_sq_2)
+        D_KL[P || Q], where P and Q are Univariate Gaussians.
+        '''
+        return (1/2)*(
+            2*torch.log(sigma_sq_2 / sigma_sq_1) + \
+            ((sigma_sq_1 ** 2)/(sigma_sq_2 ** 2)) + \
+            ((mu_1 - mu_2) ** 2) / (sigma_sq_2 ** 2) - 1)
+
     def get_mini_batches(self):
         # Retrieve transition data in mini batches
         all_obs_batch, all_actions_batch, reward_batch_t1, terminated_batch_t2, truncated_batch_t2 = self.memory.sample(
@@ -714,15 +784,21 @@ class Agent():
         
         # At time t0 predict the state at time t1:
         X = torch.cat((state_batch_t0.detach(), action_batch_t0.float()), dim=1)
-        pred_batch_t0t1 = self.transition_net(X)
+        pred_batch_t0t1, _ = self.transition_net(X)
 
         # Determine the prediction error wrt time t0-t1:
-        # WANT TO REPLACVE WITH KL DIVERGENCE EVENTUIUALLY
+
+        # MAP MSE:
         pred_error_batch_t0t1 = torch.mean(
             F.mse_loss(
                 pred_batch_t0t1, state_mu_batch_t1, reduction='none'
             ), dim=1
         ).unsqueeze(1)
+
+        # # KL Divergence:
+        # pred_error_batch_t0t1 = torch.sum(
+        #     self.kl_div(), dim = 1
+        # ).unsqueeze(1)
 
         return (state_batch_t1, state_batch_t2, action_batch_t1,
                 reward_batch_t1, terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
