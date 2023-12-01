@@ -1,0 +1,28 @@
+Potential Paths:
+
+Splitting the "model training" and the "AcT planning" stages.
+
+1. (Proleptic Networks) Use Himst and Lanillos's agent to bootstrap the model networks and then switch over to "DeepAcT". Networks used:
+	* Model Networks:
+		- p_theta: generative state-transition
+		- p_xi: generative obs likelihood
+		- q_phi: variational state-transition
+	* "Proleptic" Networks:
+		- q_pi: variational policy network
+		- f_phi: approx efe-value network
+
+2. (Variable Abstraction) Use DeepAcT from the start, however limit the planning horizion to 1 (next state planning) in order to bootstrap the model networks. Subsequently switch over to deep temporal planning with AcT after approporate bootstrap. Networks used:
+	* Model Networks:
+		- p_theta: generative state-transition
+		- p_xi: generative obs likelihood
+		- q_phi: variational state-transition
+
+Questions/Notes:
+
+* TENTATIVELY GOING WITH VARIABLE ABSTRACTION 
+* What to do about the fact that the EFE is a constituent in the VFE?
+* A habit policy - network? - is good for unsuprising states. 
+
+* is it really worth attempting to evaluate Himst and Lanillos's VFE?
+	- I'll have to in order to use the proleptic networks to train the model networks
+	- If I use AcT's or Catal et al's VFE then I won't need the proleptic networks

@@ -1,0 +1,12 @@
+
+* initial_state_belief:
+	what is this exactly?
+
+* action selection in expand_AcT seems to always return the same actions
+	- yep, only ever selecting action "0"
+
+* Node.pred_mean_state:
+	- should we use this or a sample from the distributon parameterised by "pred_mean_state"?
+
+* using expand_AcT instead of tree_policy_AcT means that the tree is not being properly built?
+	- probably should use tree_policy_AcT even for 1-ply planning.
