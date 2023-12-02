@@ -1,7 +1,3 @@
-__author__ = "Otto van der Himst"
-__credits__ = "Otto van der Himst, Pablo Lanillos"
-__version__ = "1.0"
-__email__ = "o.vanderhimst@student.ru.nl"
 
 import torch
 import torch.nn as nn
@@ -648,6 +644,8 @@ class Agent():
             x = torch.cat((state_mu, torch.exp(state_logvar)), dim=1)
             policy = self.policy_net(x)
 
+            print(f"\nselect_action - policy: {policy}\n")
+
             return torch.multinomial(policy, 1)
 
     # OG VERSION:
@@ -784,21 +782,26 @@ class Agent():
         
         # At time t0 predict the state at time t1:
         X = torch.cat((state_batch_t0.detach(), action_batch_t0.float()), dim=1)
-        pred_batch_t0t1, _ = self.transition_net(X)
+        pred_batch_mean_t0t1, pred_batch_logvar_t0t1 = self.transition_net(X)
 
         # Determine the prediction error wrt time t0-t1:
 
         # MAP MSE:
         pred_error_batch_t0t1 = torch.mean(
             F.mse_loss(
-                pred_batch_t0t1, state_mu_batch_t1, reduction='none'
+                pred_batch_mean_t0t1, state_mu_batch_t1, reduction='none'
             ), dim=1
         ).unsqueeze(1)
 
         # # KL Divergence:
         # pred_error_batch_t0t1 = torch.sum(
-        #     self.kl_div(), dim = 1
+        #     self.kl_div(
+        #         pred_batch_mean_t0t1, torch.exp(pred_batch_logvar_t0t1), 
+        #         state_mu_batch_t1, torch.exp(state_logvar_batch_t1)
+        #     ), dim = 1
         # ).unsqueeze(1)
+
+        # print(f"\nKL-div - pred_error_batch_t0t1: {pred_error_batch_t0t1}\n")
 
         return (state_batch_t1, state_batch_t2, action_batch_t1,
                 reward_batch_t1, terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
