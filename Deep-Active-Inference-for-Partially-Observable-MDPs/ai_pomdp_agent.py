@@ -40,7 +40,7 @@ def plot_learning_curve(x, scores, figure_file, version):
 
 class ReplayMemory():
     
-    def __init__(self, capacity, obs_shape, device='cpu'):
+    def __init__(self, capacity, obs_shape, device='cuda:0'):
         
         self.device=device
         
@@ -146,7 +146,7 @@ class ReplayMemory():
     
 class Model(nn.Module):
     
-    def __init__(self, n_inputs, n_outputs, n_hidden=64, lr=1e-3, softmax=False, device='cpu'):
+    def __init__(self, n_inputs, n_outputs, n_hidden=64, lr=1e-3, softmax=False, device='cuda:0'):
         super(Model, self).__init__()
         
         self.n_inputs = n_inputs # Number of inputs
@@ -175,7 +175,7 @@ class Model(nn.Module):
 class MVGaussianModel(nn.Module):
 
     # def __init__(self, n_inputs, n_outputs, n_hidden, lr=1e-3, dropout_prob=0.0, device='cuda:0', model=None):
-    def __init__(self, n_inputs, n_outputs, n_hidden, lr=1e-3, device='cpu'):
+    def __init__(self, n_inputs, n_outputs, n_hidden, lr=1e-3, device='cuda:0'):
 
         super(MVGaussianModel, self).__init__()
 
@@ -211,15 +211,19 @@ class MVGaussianModel(nn.Module):
         x_2 = torch.relu(self.fc2(x_1))
 
         mean = self.mean_fc(x_2)
-        log_var = 2 * torch.log(self.stdev(x_2))
+        log_var = torch.log((self.stdev(x_2) ** 2))
+
+        # print(f"\nmean: {mean}")
+        # print(f"log_var: {log_var}\n")
+        # breakpoint()
 
         return mean, log_var
 
-    def to_var(self, log_var):
-        '''
-        Turn a log variance into a variance
-        '''
-        return torch.exp(0.5 * log_var)
+    # def to_var(self, log_var):
+    #     '''
+    #     Turn a log variance into a variance
+    #     '''
+    #     return torch.exp(0.5 * log_var)
 
     def reparameterize(self, mean, var):
         std = torch.sqrt(var)
@@ -339,7 +343,7 @@ class MVGaussianModel(nn.Module):
 #         return BCE + KLD
 
 class VAE(nn.Module):
-    def __init__(self, input_size, n_screens, n_latent_states, lr=1e-5, device='cpu'):
+    def __init__(self, input_size, n_screens, n_latent_states, lr=1e-5, device='cuda:0'):
         super(VAE, self).__init__()
 
         self.device = device
@@ -394,7 +398,7 @@ class VAE(nn.Module):
         '''
         Returns the ELBO
         '''
-        if batch:
+        if batch: 
             BCE = F.binary_cross_entropy(recon_x.view(-1, self.total_input_size),
                                          x.view(-1, self.total_input_size), reduction='sum')
             KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
@@ -471,7 +475,7 @@ class Agent():
     def set_parameters(self, argv):
         
         # The default parameters
-        default_parameters = {'run_id':"_rX", 'device':'cpu', # 'device':'cuda',
+        default_parameters = {'run_id':"_rX", 'device':'cuda:0', # 'device':'cuda',
               'env':'CartPole-v1', 'n_episodes':2000, 
               'n_screens':4, 'n_latent_states':32, 'lr_vae':1e-5, 'alpha':25000,
               'n_hidden_trans':64, 'lr_trans':1e-3,
@@ -785,21 +789,26 @@ class Agent():
         pred_batch_mean_t0t1, pred_batch_logvar_t0t1 = self.transition_net(X)
 
         # Determine the prediction error wrt time t0-t1:
+        # # MAP MSE:
+        # pred_error_batch_t0t1 = torch.mean(
+        #     F.mse_loss(
+        #         pred_batch_mean_t0t1, state_mu_batch_t1, reduction='none'
+        #     ), dim=1
+        # ).unsqueeze(1)
 
-        # MAP MSE:
-        pred_error_batch_t0t1 = torch.mean(
-            F.mse_loss(
-                pred_batch_mean_t0t1, state_mu_batch_t1, reduction='none'
-            ), dim=1
+        # KL Divergence:
+        pred_error_batch_t0t1 = torch.sum(
+            self.kl_div(
+                pred_batch_mean_t0t1, torch.exp(pred_batch_logvar_t0t1),
+                state_mu_batch_t1, torch.exp(state_logvar_batch_t1)
+            ), dim = 1
         ).unsqueeze(1)
 
-        # # KL Divergence:
-        # pred_error_batch_t0t1 = torch.sum(
-        #     self.kl_div(
-        #         pred_batch_mean_t0t1, torch.exp(pred_batch_logvar_t0t1), 
-        #         state_mu_batch_t1, torch.exp(state_logvar_batch_t1)
-        #     ), dim = 1
-        # ).unsqueeze(1)
+        # print(f"pred_error_batch_t0t1: {pred_error_batch_t0t1}")
+        # print(f"pred_batch_mean_t0t1: {pred_batch_mean_t0t1}")
+        # print(f"torch.exp(pred_batch_logvar_t0t1): {torch.exp(pred_batch_logvar_t0t1)}\n")
+        # print(f"state_mu_batch_t1: {state_mu_batch_t1}")
+        # print(f"torch.exp(state_logvar_batch_t1)\n")
 
         # print(f"\nKL-div - pred_error_batch_t0t1: {pred_error_batch_t0t1}\n")
 
@@ -863,7 +872,7 @@ class Agent():
         
         # Determine the VFE, then take the mean over all batch samples:
         VFE_batch = vae_loss + pred_error_batch_t0t1 + (energy_term_batch - entropy_batch)
-        
+
         VFE = torch.mean(VFE_batch)
         
         return VFE
@@ -932,6 +941,8 @@ class Agent():
         
         vae_batch_size = 256
         vae_obs_indices = [self.n_screens-i for i in range(self.n_screens)]
+
+        noise_std = 0.1
         
         losses = []
         for ith_episode in range(self.pt_vae_n_episodes):
@@ -940,6 +951,8 @@ class Agent():
             # obs = self.get_screen(self.env, self.device)
             obs, _ = self.env.reset()
             obs = torch.tensor(obs, dtype = torch.float32, device = self.device)
+            noisy_obs = obs.cpu() + noise_std * np.random.randn(*obs.shape)
+            noisy_obs = torch.tensor(noisy_obs, dtype = torch.float32, device = self.device)
 
             terminated = False
             truncated = False
@@ -954,6 +967,8 @@ class Agent():
 
                 obs, _, terminated, truncated, _ = self.env.step(action)
                 obs = torch.tensor(obs, dtype = torch.float32, device = self.device)
+                noisy_obs = obs.cpu() + noise_std * np.random.randn(*obs.shape)
+                noisy_obs = torch.tensor(noisy_obs, dtype = torch.float32, device = self.device)
                 
                 if self.memory.push_count > vae_batch_size + self.n_screens*2:
                     obs_batch, _, _, _, _ = self.memory.sample(vae_obs_indices, [], [], [], [], len(vae_obs_indices), vae_batch_size)
@@ -984,7 +999,9 @@ class Agent():
                                 plt.show()
                 
                 if (terminated or truncated):
-                    self.memory.push(obs, -99, -99, terminated, truncated)
+                    # self.memory.push(obs, -99, -99, terminated, truncated)
+                    self.memory.push(noisy_obs, -99, -99, terminated, truncated)
+
                     
                     if ith_episode > 0 and ith_episode % 100 == 0:
                         torch.save(self.vae.state_dict(), "networks/pre_trained_vae/vae_n{}_{:d}.pth".format(

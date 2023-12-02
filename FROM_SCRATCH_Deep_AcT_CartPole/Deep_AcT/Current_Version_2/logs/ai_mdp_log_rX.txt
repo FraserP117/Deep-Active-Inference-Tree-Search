@@ -15391,3 +15391,221 @@ Custom parameters:
 
 Environment is: CartPole-v1
 Training started at 2023-11-09 12:00:22.298521
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 17:40:41.422352
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 17:40:41.578934
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 17:48:56.684476
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 17:48:56.803189
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 17:49:44.041370
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 17:49:44.159080
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:02:31.258739
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:03:01.963173
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:03:02.060912
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:09:38.242104
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:09:38.351840
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:10:04.424069
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:10:04.521780
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:12:46.464162
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:12:46.572902
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:14:16.812830
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:14:16.946471
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:15:00.491922
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:15:00.604626
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:15:53.678594
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:15:53.792290
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:16:13.298392
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:16:13.419097
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:16:45.715888
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:16:45.830558
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:23:43.579929
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:23:43.677689
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:25:21.329747
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:25:21.428513
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:28:20.701176
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:28:20.805948
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:28:58.675068
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:28:58.774800
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:30:36.495300
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:30:36.593041
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:55:57.377927
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:55:57.491624
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:57:28.661342
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:57:28.762044
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:58:23.669179
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:58:23.769908
+
+
+-----------------------------------------------------------------
+File opened at 2023-12-01 18:59:17.670595
+Default parameters:
+{'run_id': '_rX', 'device': device(type='cuda', index=0), 'env': 'CartPole-v1', 'n_episodes': 100, 'n_hidden_gen_trans': 64, 'lr_gen_trans': 0.001, 'n_hidden_var_trans': 64, 'lr_var_trans': 0.001, 'n_hidden_gen_obs': 64, 'lr_gen_obs': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 64, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 1.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_mdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_mdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_mdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_mdp_{}net_rX.pth', 'rho': 5.0, 'delta': 0.5, 'd': 4, 'epsilon': 1.0, 'k_p': 1.0}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2023-12-01 18:59:17.763346
