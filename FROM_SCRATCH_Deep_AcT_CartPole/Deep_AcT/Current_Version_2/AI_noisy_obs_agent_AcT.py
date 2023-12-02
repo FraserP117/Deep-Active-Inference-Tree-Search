@@ -249,21 +249,65 @@ class ReplayMemory():
 
 #         return mean, var
 
+# # OG VERSION
+# class MVGaussianModel(nn.Module):
+
+#     def __init__(self, n_inputs, n_outputs, n_hidden, lr=1e-3, dropout_prob=0.0, device='cuda:0', model=None):
+
+#         super(MVGaussianModel, self).__init__()
+
+#         self.n_inputs = n_inputs
+#         self.n_outputs = n_outputs
+#         self.n_hidden = n_hidden
+
+#         self.model = model
+
+#         # ADDED dropout layers with the specified dropout probability
+#         self.dropout1 = nn.Dropout(p = dropout_prob)
+#         self.dropout2 = nn.Dropout(p = dropout_prob)
+
+#         self.fc1 = nn.Linear(n_inputs, n_hidden)
+#         self.fc2 = nn.Linear(n_hidden, n_hidden)
+
+#         self.mean_fc = nn.Linear(n_hidden, n_outputs)
+#         self.stdev = nn.Linear(n_hidden, n_outputs)
+
+#         self.optimizer = optim.Adam(self.parameters(), lr)
+#         self.device = device
+#         self.to(self.device)
+
+#     def forward(self, x):
+
+#         x_1 = torch.relu(self.fc1(x))
+        
+#         x_1 = self.dropout1(x_1)
+
+#         x_2 = torch.relu(self.fc2(x_1))
+        
+#         x_2 = self.dropout2(x_2)
+
+#         mean = self.mean_fc(x_2)
+#         var = self.stdev(x_2) ** 2
+
+#         return mean, var
+
+#     def reparameterize(self, mean, var):
+#         std = torch.sqrt(var)
+#         epsilon = torch.randn_like(std)  # Sample from standard Gaussian
+#         sampled_value = mean + epsilon * std  # Reparameterization trick
+
+#         return sampled_value
+
 class MVGaussianModel(nn.Module):
 
-    def __init__(self, n_inputs, n_outputs, n_hidden, lr=1e-3, dropout_prob=0.0, device='cuda:0', model=None):
+    # def __init__(self, n_inputs, n_outputs, n_hidden, lr=1e-3, dropout_prob=0.0, device='cuda:0', model=None):
+    def __init__(self, n_inputs, n_outputs, n_hidden, lr=1e-3, device='cuda:0'):
 
         super(MVGaussianModel, self).__init__()
 
         self.n_inputs = n_inputs
         self.n_outputs = n_outputs
         self.n_hidden = n_hidden
-
-        self.model = model
-
-        # ADDED dropout layers with the specified dropout probability
-        self.dropout1 = nn.Dropout(p = dropout_prob)
-        self.dropout2 = nn.Dropout(p = dropout_prob)
 
         self.fc1 = nn.Linear(n_inputs, n_hidden)
         self.fc2 = nn.Linear(n_hidden, n_hidden)
@@ -278,17 +322,13 @@ class MVGaussianModel(nn.Module):
     def forward(self, x):
 
         x_1 = torch.relu(self.fc1(x))
-        
-        x_1 = self.dropout1(x_1)
 
         x_2 = torch.relu(self.fc2(x_1))
-        
-        x_2 = self.dropout2(x_2)
 
         mean = self.mean_fc(x_2)
-        var = self.stdev(x_2) ** 2
+        log_var = torch.log((self.stdev(x_2) ** 2))
 
-        return mean, var
+        return mean, log_var
 
     def reparameterize(self, mean, var):
         std = torch.sqrt(var)
@@ -363,9 +403,9 @@ class Agent():
         self.all_actions = [0, 1]
 
         # Initialize the networks - taken from Catal et al :
-        self.generative_transition_net = MVGaussianModel(self.obs_size+1, self.obs_size, self.n_hidden_gen_trans, lr=self.lr_gen_trans, device=self.device, model = 'gen_trans')
-        self.generative_observation_net = MVGaussianModel(self.obs_size, self.obs_size, self.n_hidden_gen_obs, lr=self.lr_gen_obs, device=self.device, model = 'gen_obs')
-        self.variational_transition_net = MVGaussianModel(1, self.obs_size, self.n_hidden_var_trans, lr=self.lr_var_trans, device=self.device, model = 'var_trans')
+        self.generative_transition_net = MVGaussianModel(self.obs_size+1, self.obs_size, self.n_hidden_gen_trans, lr=self.lr_gen_trans, device=self.device) #, model = 'gen_trans')
+        self.generative_observation_net = MVGaussianModel(self.obs_size, self.obs_size, self.n_hidden_gen_obs, lr=self.lr_gen_obs, device=self.device) #, model = 'gen_obs')
+        self.variational_transition_net = MVGaussianModel(1, self.obs_size, self.n_hidden_var_trans, lr=self.lr_var_trans, device=self.device) #, model = 'var_trans')
 
         if self.load_network: # If true: load the networks given paths
 
@@ -510,36 +550,67 @@ class Agent():
         sm = nn.Softmax(dim = 0)
         return sm(x)
 
-    def kl_divergence_diag_cov_gaussian(self, mu1, sigma1_sq, mu2, sigma2_sq): 
-        '''
-        Returns the average KL divergence for batched inputs. 
-        In case of scaler inputs, simply returns the KL divergence for the two input distributions
+    # def kl_div(self, mu1, sigma1_sq, mu2, sigma2_sq): 
+    #     '''
+    #     Returns the average KL divergence for batched inputs. 
+    #     In case of scaler inputs, simply returns the KL divergence for the two input distributions
 
-        mu1: 
-            a batch of predicted mean vectors for the first distribution, 
-            either contains a single entry or is a batch of 64 mean vectors
-        mu2: 
-            a batch of predicted mean vectors for the second distribution, 
-            either contains a single entry or is a batch of 64 mean vectors
-        sigma1_sq: 
-            a batch of predicted variances for the first distribution, 
-            either contains a single entry or is a batch of 64 mean vectors
-        sigma2_sq:
-            a batch of predicted variances for the second distribution, 
-            either contains a single entry or is a batch of 64 mean vectors
+    #     mu1: 
+    #         a batch of predicted mean vectors for the first distribution, 
+    #         either contains a single entry or is a batch of 64 mean vectors
+    #     mu2: 
+    #         a batch of predicted mean vectors for the second distribution, 
+    #         either contains a single entry or is a batch of 64 mean vectors
+    #     sigma1_sq: 
+    #         a batch of predicted variances for the first distribution, 
+    #         either contains a single entry or is a batch of 64 mean vectors
+    #     sigma2_sq:
+    #         a batch of predicted variances for the second distribution, 
+    #         either contains a single entry or is a batch of 64 mean vectors
+    #     '''
+
+    #     avg_kl_div = 0
+
+    #     for i in range(len(mu1)):
+
+    #         kl_div_i = 0.5 * torch.sum(
+    #             (torch.sqrt(sigma2_sq[i]) / torch.sqrt(sigma1_sq[i])) + ((mu1[i] - mu2[i])**2 / sigma1_sq[i]) - 1 + torch.log(torch.sqrt(sigma1_sq[i]) / torch.sqrt(sigma2_sq[i]))
+    #         )
+
+    #         avg_kl_div += kl_div_i
+
+    #     avg_kl_div = avg_kl_div / len(mu1)
+
+    #     return avg_kl_div
+
+    def kl_div(self, mu_1, sigma_sq_1, mu_2, sigma_sq_2):
         '''
+        Calculates the KL Divergence between P(mu_1, sigma_sq_1) and Q(mu_2, sigma_sq_2)
+        D_KL[P || Q], where P and Q are Univariate Gaussians.
+        '''
+        # print(f"\nmu_1.get_device(): {mu_1.get_device()}")
+        # print(f"sigma_sq_1.get_device(): {sigma_sq_1.get_device()}")
+        # print(f"mu_2.get_device(): {mu_2.get_device()}")
+        # print(f"sigma_sq_2.get_device(): {sigma_sq_2.get_device()}\n")
+
+        # breakpoint()
+
+        return (1/2)*(
+            2*torch.log(sigma_sq_2 / sigma_sq_1) + \
+            ((sigma_sq_1 ** 2)/(sigma_sq_2 ** 2)) + \
+            ((mu_1 - mu_2) ** 2) / (sigma_sq_2 ** 2) - 1)
+
+    def avg_kl_div(self, mu_1, sigma_sq_1, mu_2, sigma_sq_2):
 
         avg_kl_div = 0
 
-        for i in range(len(mu1)):
+        for i in range(len(mu_1)):
 
-            kl_div_i = 0.5 * torch.sum(
-                (torch.sqrt(sigma2_sq[i]) / torch.sqrt(sigma1_sq[i])) + ((mu1[i] - mu2[i])**2 / sigma1_sq[i]) - 1 + torch.log(torch.sqrt(sigma1_sq[i]) / torch.sqrt(sigma2_sq[i]))
-            )
+            kl_div_i = self.kl_div(mu_1, sigma_sq_1, mu_2, sigma_sq_2)
 
             avg_kl_div += kl_div_i
 
-        avg_kl_div = avg_kl_div / len(mu1)
+        avg_kl_div = avg_kl_div / len(mu_1)
 
         return avg_kl_div
 
@@ -657,7 +728,7 @@ class Agent():
             mean_x_dot = 0.0
             mean_theta = 0.0
             mean_theta_dot = 0.0
-            mean_state_prior = torch.tensor([mean_x, mean_x_dot, mean_theta, mean_theta_dot])
+            mean_state_prior = torch.tensor([mean_x, mean_x_dot, mean_theta, mean_theta_dot]).to(self.device)
 
             # 1.2 Define the (diagonal) covariance matrix over preffered hidden states:
             var_x = 1  
@@ -666,10 +737,17 @@ class Agent():
             var_theta_dot = 1 
 
             # 1.3 Create the "covariance matrix" - array of diagonal entries of the covariance matrix: 
-            var_state_prior = torch.tensor([var_x, var_x_dot, var_theta, var_theta_dot])
+            var_state_prior = torch.tensor([var_x, var_x_dot, var_theta, var_theta_dot]).to(self.device)
+
+            # print(f"\nmean_state_phi.get_device(): {mean_state_phi.get_device()}")
+            # print(f"var_state_phi.get_device(): {var_state_phi.get_device()}")
+            # print(f"mean_state_prior.get_device(): {mean_state_prior.get_device()}")
+            # print(f"var_state_prior.get_device(): {var_state_prior.get_device()}\n")
+
+            # breakpoint()
 
             # 2. Calculate the KL divergence between Q(s_t | pi) and the state prior P(s_t | C):
-            state_divergence = self.kl_divergence_diag_cov_gaussian(
+            state_divergence = self.avg_kl_div(
                 mean_state_phi, var_state_phi,
                 mean_state_prior, var_state_prior
             )
@@ -691,6 +769,10 @@ class Agent():
 
             # 4. Calculate the expected free energy (1 sample version) - default for self.rho is 1
             expected_free_energy = state_divergence + (1/self.rho) * expected_entropy
+
+            print(f"\nstate_divergence: {state_divergence}")
+            print(f"expected_entropy: {expected_entropy}\n")
+            breakpoint()
 
 
         return expected_free_energy
@@ -853,6 +935,9 @@ class Agent():
         # Calculate the approximate Expected Free Energy for the predicted time step - t1:
         raw_efe = self.calculate_approximate_EFE(mean_next_state_phi, var_next_state_phi, mean_next_obs_xi, var_next_obs_xi)
 
+        # print(f"\nraw_efe: {raw_efe}\n")
+        # breakpoint()
+
         # store the raw efe as intermediate stage in comuting predictive efe
         child_node.raw_efe = raw_efe
 
@@ -889,6 +974,15 @@ class Agent():
 
         node.action_posterior_belief = action_probs
 
+        # print(f"self.exploration_factor: {self.exploration_factor}")
+        # print(f"precision_tau: {precision_tau}")
+        # print(f"EFE_tau.cpu().detach().numpy(): {EFE_tau.cpu().detach().numpy()}")
+        # print(f"prior_belief_about_policy: {prior_belief_about_policy}")
+        # print(f"action_dist_arg: {action_dist_arg}")
+        # print(f"action_probs: {action_probs}\n")
+
+        # breakpoint()
+
         return action_probs
 
     def variational_inference_AcT(self, node):
@@ -905,8 +999,19 @@ class Agent():
         # Get delta^tau * G(𝜋_𝜏, 𝑣_𝜏):
         EFE_tau = node.predictive_EFE 
 
+        # print(f"\nprecision_tau: {precision_tau}")
+        # print(f"EFE_tau: {EFE_tau}\n")
+ 
+        # breakpoint()
+
+
         # Construct the Boltzmann distribution over actions - posterior belief about actions (posterior action probabilities):
         action_probs = self.update_action_posterior(node, prior_belief_about_policy, precision_tau, EFE_tau)
+
+        # print(f"\naction_probs: {action_probs}")
+        # print(f"node.children: {node.children}\n")
+
+        # breakpoint()
 
         # sample an action from this Boltzmann distribution:
         selected_child_node = random.choices(node.children, weights = action_probs)[0]
@@ -985,7 +1090,7 @@ class Agent():
         variational_next_state_distribution_mean, variational_next_state_distribution_var = self.variational_transition_net(current_action) # q_\phi: predicted next state dist (var)
 
         # Calculate the predicted state, KL divergence between the generative and variational models
-        kl_divergence = self.kl_divergence_diag_cov_gaussian(
+        kl_divergence = self.avg_kl_div(
             variational_next_state_distribution_mean, variational_next_state_distribution_var, # q_\phi
             generative_next_state_distribution_mean, generative_next_state_distribution_var # p_\theta
         )
@@ -1167,7 +1272,9 @@ class Agent():
 
                 free_energy_loss, kl_divergence, neg_log_li = self.learn()
 
-                VFE_loss += free_energy_loss.detach().numpy()
+                # VFE_loss += free_energy_loss.detach().numpy()
+                VFE_loss += free_energy_loss.cpu().detach().numpy()
+
 
                 print(f"\nAcT_selected_actions: {AcT_selected_actions}")
                 print(f"selected action: {action}")
@@ -1253,3 +1360,5 @@ if __name__ == "__main__":
 
     agent = Agent(sys.argv[1:])
     agent.train()
+
+# memes as of the 01/12/23 are dank!
