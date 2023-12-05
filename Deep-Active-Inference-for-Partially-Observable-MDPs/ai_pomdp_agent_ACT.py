@@ -12,6 +12,13 @@ import matplotlib.pyplot as plt
 
 # the sensor uncertainty branch
 
+'''
+Probably can't use a VAE for the observation model, since we need the parameterise the mean and stdev of the obs model.
+Perhaps it's best to go back to feedforward nets only.
+
+Deal with the batch issue in Gaussian_kl_divergence
+'''
+
 
 def plot_learning_curve(x, scores, figure_file, version):
     # Calculate the moving average and standard deviation
@@ -723,6 +730,134 @@ class Agent():
             ((sigma_sq_1 ** 2)/(sigma_sq_2 ** 2)) + \
             ((mu_1 - mu_2) ** 2) / (sigma_sq_2 ** 2) - 1)
 
+    def Gaussian_kl_divergence(self, mu1, sigma1, mu2, sigma2):
+        """
+        Calculate KL divergence between two diagonal multivariate Gaussian distributions.
+
+        Parameters:
+            mu1 (torch.Tensor): Mean of the first distribution.
+            sigma1 (torch.Tensor): Diagonal standard deviations of the first distribution.
+            mu2 (torch.Tensor): Mean of the second distribution.
+            sigma2 (torch.Tensor): Diagonal standard deviations of the second distribution.
+
+        Returns:
+            torch.Tensor: KL divergence.
+        """
+        k = mu1.size(-1)  # Dimensionality of the distributions
+
+        # print(f"\nmu1.shape: {mu1.shape}") # THESE ARE BATCHES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # print(f"sigma1.shape: {sigma1.shape}") # THESE ARE BATCHES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # print(f"mu2.shape: {mu2.shape}") # THESE ARE BATCHES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        # print(f"sigma2.shape: {sigma2.shape}\n") # THESE ARE BATCHES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        # print(f"\nsigma2.reciprocal():\n{sigma2.reciprocal()}\n")
+
+        # print(f"\ntorch.diag_embed(sigma2.reciprocal()).shape: {torch.diag_embed(sigma2.reciprocal()).shape}")
+        # print(f"torch.diag_embed(sigma1).shape: {torch.diag_embed(sigma1).shape}")
+        # print(f"(mu2 - mu1).shape: {(mu2 - mu1).shape}\n")
+
+        # trace_term = torch.trace(
+        #     torch.diag_embed(
+        #         sigma2.reciprocal()
+        #     ) @ torch.diag_embed(sigma1)
+        # )
+
+        trace_term = torch.trace(
+            torch.matmul(
+                torch.diag_embed(
+                    sigma2.reciprocal()
+                ), torch.diag_embed(sigma1)
+            ).squeeze()
+        )
+
+
+        Mahalanobis_term = torch.t(mu2 - mu1) @ torch.diag_embed(
+            sigma2.reciprocal()
+        ) @ (mu2 - mu1)
+
+        log_term = -k + torch.sum(torch.log(sigma2)) - torch.sum(torch.log(sigma1))
+
+        kl = 0.5 * (trace_term + Mahalanobis_term + log_term)
+
+        return kl
+
+    # def Gaussian_kl_divergence(self, mu1, sigma1, mu2, sigma2):
+    #     """
+    #     Calculate KL divergence between two diagonal multivariate Gaussian distributions.
+
+    #     Parameters:
+    #         mu1 (torch.Tensor): Mean of the first distribution.
+    #         sigma1 (torch.Tensor): Diagonal standard deviations of the first distribution.
+    #         mu2 (torch.Tensor): Mean of the second distribution.
+    #         sigma2 (torch.Tensor): Diagonal standard deviations of the second distribution.
+
+    #     Returns:
+    #         torch.Tensor: KL divergence.
+    #     """
+    #     k = mu1.size(-1)  # Dimensionality of the distributions
+
+    #     print(f"\nmu1: {mu1}")
+    #     print(f"sigma1: {sigma1}")
+    #     print(f"mu2: {mu2}")
+    #     print(f"sigma2: {sigma2}\n")
+
+    #     # Squeeze the extra dimension added by torch.diag_embed
+    #     diag_sigma2_inv = torch.diag_embed(sigma2.reciprocal()).squeeze()
+    #     diag_sigma1 = torch.diag_embed(sigma1).squeeze()
+        
+    #     trace_term = torch.trace(diag_sigma2_inv @ diag_sigma1)
+
+    #     Mahalanobis_term = torch.matmul((mu2 - mu1), diag_sigma2_inv) @ (mu2 - mu1)
+
+    #     log_term = -k + torch.sum(torch.log(sigma2)) - torch.sum(torch.log(sigma1))
+
+    #     kl = 0.5 * (trace_term + Mahalanobis_term + log_term)
+
+    #     return kl
+
+    # def Gaussian_kl_divergence(self, mu1, sigma1, mu2, sigma2):
+    #     """
+    #     Calculate KL divergence between two diagonal multivariate Gaussian distributions.
+
+    #     Parameters:
+    #         mu1 (torch.Tensor): Mean of the first distribution.
+    #         sigma1 (torch.Tensor): Diagonal standard deviations of the first distribution.
+    #         mu2 (torch.Tensor): Mean of the second distribution.
+    #         sigma2 (torch.Tensor): Diagonal standard deviations of the second distribution.
+
+    #     Returns:
+    #         torch.Tensor: KL divergence.
+    #     """
+    #     k = mu1.size(-1)  # Dimensionality of the distributions
+
+    #     # print(f"\nmu1: {mu1}")
+    #     # print(f"sigma1: {sigma1}")
+    #     # print(f"mu2: {mu2}")
+    #     # print(f"sigma2: {sigma2}\n")
+
+    #     # Squeeze the extra dimension added by torch.diag_embed
+    #     diag_sigma2_inv = torch.diag_embed(sigma2.reciprocal()).squeeze()
+    #     diag_sigma1 = torch.diag_embed(sigma1).squeeze()
+        
+    #     trace_term = torch.sum(diag_sigma2_inv * diag_sigma1)
+
+    #     Mahalanobis_term = torch.matmul((mu2 - mu1) * diag_sigma2_inv, (mu2 - mu1))
+    #     # Mahalanobis_term = torch.matmul(
+    #     #     torch.matmul(
+    #     #         (mu2 - mu1), diag_sigma2_inv
+    #     #     ), (mu2 - mu1)
+    #     # )
+
+    #     log_term = -k + torch.sum(torch.log(sigma2)) - torch.sum(torch.log(sigma1))
+
+    #     print(f"\ntrace_term: {trace_term}")
+    #     print(f"Mahalanobis_term: {Mahalanobis_term}")
+    #     print(f"log_term: {log_term}\n")
+
+    #     kl = 0.5 * (trace_term + Mahalanobis_term + log_term)
+
+    #     return kl
+
     def get_mini_batches(self):
         # Retrieve transition data in mini batches
         all_obs_batch, all_actions_batch, reward_batch_t1, terminated_batch_t2, truncated_batch_t2 = self.memory.sample(
@@ -767,12 +902,40 @@ class Agent():
         # KL Divergence:
         pred_error_batch_t0t1 = torch.sum(
             self.kl_div(
-                pred_batch_mean_t0t1, torch.exp(pred_batch_logvar_t0t1),
+                pred_batch_mean_t0t1, torch.exp(pred_batch_logvar_t0t1), 
                 state_mu_batch_t1, torch.exp(state_logvar_batch_t1)
             ), dim = 1
         ).unsqueeze(1)
 
-        # print(f"pred_error_batch_t0t1: {pred_error_batch_t0t1}")
+        print(f"\ntype(pred_batch_mean_t0t1): {type(pred_batch_mean_t0t1)}")
+        print(f"type(torch.exp(pred_batch_logvar_t0t1)): {type(torch.exp(pred_batch_logvar_t0t1))}")
+        print(f"type(state_mu_batch_t1): {type(state_mu_batch_t1)}")
+        print(f"type(torch.exp(state_logvar_batch_t1)): {type(torch.exp(state_logvar_batch_t1))}\n")
+
+        print(f"\npred_batch_mean_t0t1.shape: {pred_batch_mean_t0t1.shape}")
+        print(f"torch.exp(pred_batch_logvar_t0t1).shape: {torch.exp(pred_batch_logvar_t0t1).shape}")
+        print(f"state_mu_batch_t1.shape: {state_mu_batch_t1.shape}")
+        print(f"torch.exp(state_logvar_batch_t1).shape: {torch.exp(state_logvar_batch_t1).shape}\n")
+
+        print(f"\npred_error_batch_t0t1.shape: {pred_error_batch_t0t1.shape}\n")
+
+        # print(f"\npred_batch_mean_t0t1): {pred_batch_mean_t0t1}")
+        # print(f"torch.exp(pred_batch_logvar_t0t1)): {torch.exp(pred_batch_logvar_t0t1)}")
+        # print(f"state_mu_batch_t1): {state_mu_batch_t1}")
+        # print(f"torch.exp(state_logvar_batch_t1)): {torch.exp(state_logvar_batch_t1)}")
+        # print(f"torch.exp(state_logvar_batch_t1)).dim(): {torch.exp(state_logvar_batch_t1).dim()}\n")
+
+
+        pred_error_batch_t0t1_v2 = torch.sum(
+            self.Gaussian_kl_divergence(
+                pred_batch_mean_t0t1, torch.exp(pred_batch_logvar_t0t1), 
+                state_mu_batch_t1, torch.exp(state_logvar_batch_t1)
+            ), dim = 1
+        ).unsqueeze(1)
+
+        # print(f"\npred_error_batch_t0t1.shape: {pred_error_batch_t0t1.shape}\n")
+        # print(f"pred_error_batch_t0t1_v2.shape: {pred_error_batch_t0t1_v2.shape}\n")
+
         # print(f"pred_batch_mean_t0t1: {pred_batch_mean_t0t1}")
         # print(f"torch.exp(pred_batch_logvar_t0t1): {torch.exp(pred_batch_logvar_t0t1)}\n")
         # print(f"state_mu_batch_t1: {state_mu_batch_t1}")
@@ -825,7 +988,7 @@ class Agent():
         policy_batch_t1 = self.policy_net(state_batch_t1)
         
         # Determine the EFEs for time t1:
-        EFEs_batch_t1 = self.value_net(state_batch_t1)
+        EFEs_batch_t1 = self.value_net(state_batch_t1) # ONLY REPLACE THIS WITH ACTS PLANNING ????????????????????
 
         # Take a gamma-weighted Boltzmann distribution over the EFEs:
         boltzmann_EFEs_batch_t1 = torch.softmax(-self.gamma * EFEs_batch_t1, dim=1).clamp(min=1e-9, max=1-1e-9)
