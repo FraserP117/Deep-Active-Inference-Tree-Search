@@ -217,116 +217,6 @@ class MVGaussianModel(nn.Module):
 
         return sampled_value
 
-# class VAE(nn.Module):
-#     # In part taken from:
-#     #   https://github.com/pytorch/examples/blob/master/vae/main.py
-
-#     def __init__(self, n_screens, n_latent_states, lr=1e-5, device='cpu'):
-#         super(VAE, self).__init__()
-        
-#         self.device = device
-        
-#         self.n_screens = n_screens
-#         self.n_latent_states = n_latent_states
-        
-#         # The convolutional encoder
-#         self.encoder = nn.Sequential(                
-#                 nn.Conv3d(3, 16, (5,5,1), (2,2,1)),
-#                 nn.BatchNorm3d(16),
-#                 nn.ReLU(inplace=True),
-                
-#                 nn.Conv3d(16, 32, (5,5,1), (2,2,1)),
-#                 nn.BatchNorm3d(32),
-#                 nn.ReLU(inplace=True),
-                
-#                 nn.Conv3d(32, 32, (5,5,1), (2,2,1)),
-#                 nn.BatchNorm3d(32),
-#                 nn.ReLU(inplace=True)   
-#                 ).to(self.device)
-        
-#         # The size of the encoder output
-#         self.conv3d_shape_out = (32, 2, 8, self.n_screens)
-#         self.conv3d_size_out = np.prod(self.conv3d_shape_out)
-        
-#         # The convolutional decoder
-#         self.decoder = nn.Sequential(
-#                 nn.ConvTranspose3d(32, 32, (5,5,1), (2,2,1)),
-#                 nn.BatchNorm3d(32),
-#                 nn.ReLU(inplace=True),
-                
-#                 nn.ConvTranspose3d(32, 16, (5,5,1), (2,2,1)),
-#                 nn.BatchNorm3d(16),
-#                 nn.ReLU(inplace=True),
-                
-#                 nn.ConvTranspose3d(16, 3, (5,5,1), (2,2,1)),
-#                 nn.BatchNorm3d(3),
-#                 nn.ReLU(inplace=True),
-                
-#                 nn.Sigmoid()
-#                 ).to(self.device)
-        
-#         # Fully connected layers connected to encoder
-#         self.fc1 = nn.Linear(self.conv3d_size_out, self.conv3d_size_out // 2)
-#         self.fc2_mu = nn.Linear(self.conv3d_size_out // 2, self.n_latent_states)
-#         self.fc2_logvar = nn.Linear(self.conv3d_size_out // 2, self.n_latent_states)
-        
-#         # Fully connected layers connected to decoder
-#         self.fc3 = nn.Linear(self.n_latent_states, self.conv3d_size_out // 2)
-#         self.fc4 = nn.Linear(self.conv3d_size_out // 2, self.conv3d_size_out)
-        
-#         self.optimizer = optim.Adam(self.parameters(), lr)
-        
-#         self.to(self.device)
-
-#     def encode(self, x):
-#         # Deconstruct input x into a distribution over latent states
-#         conv = self.encoder(x)
-#         h1 = F.relu(self.fc1(conv.view(conv.size(0), -1)))
-#         mu, logvar = self.fc2_mu(h1), self.fc2_logvar(h1)
-#         return mu, logvar
-
-#     def reparameterize(self, mu, logvar):
-#         # Apply reparameterization trick
-#         std = torch.exp(0.5*logvar)
-#         eps = torch.randn_like(std)
-#         return mu + eps*std
-
-#     def decode(self, z, batch_size=1):
-#         # Reconstruct original input x from the (reparameterized) latent states
-#         h3 = F.relu(self.fc3(z))
-#         deconv_input = self.fc4(h3)
-#         deconv_input = deconv_input.view([batch_size] + [dim for dim in self.conv3d_shape_out])
-#         y = self.decoder(deconv_input)
-#         return y
-
-#     def forward(self, x, batch_size=1):
-#         # Deconstruct and then reconstruct input x
-#         mu, logvar = self.encode(x)
-#         z = self.reparameterize(mu, logvar)
-#         recon = self.decode(z, batch_size)
-#         return recon, mu, logvar
-
-#     # Reconstruction + KL divergence losses summed over all elements and batch
-#     def loss_function(self, recon_x, x, mu, logvar, batch=True):
-#         '''
-#         Returns the ELBO
-#         '''
-#         if batch:
-#             BCE = F.binary_cross_entropy(recon_x, x, reduction='none')
-#             BCE = torch.sum(BCE, dim=(1, 2, 3, 4))
-            
-#             KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1)
-
-#         else:
-#             BCE = F.binary_cross_entropy(recon_x, x, reduction='sum')
-#             # see Appendix B from VAE paper:
-#             # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
-#             # https://arxiv.org/abs/1312.6114
-#             # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-#             KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        
-#         return BCE + KLD
-
 class VAE(nn.Module):
     def __init__(self, input_size, n_screens, n_latent_states, lr=1e-5, device='cuda:0'):
         super(VAE, self).__init__()
@@ -554,60 +444,6 @@ class Agent():
             self.record.write("File opened at {}\n".format(datetime.datetime.now()))
             self.record.write(msg+"\n")   
 
-    # # def get_screen(self, env, device='cuda', displacement_h=0, displacement_w=0):
-    # def get_screen(self, env, device='cpu', displacement_h=0, displacement_w=0):
-    #     """
-    #     Get a (pre-processed, i.e. cropped, cart-focussed) observation/screen
-    #     For the most part taken from:
-    #         https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html
-    #     """
-        
-    #     def get_cart_location(env, screen_width):
-    #         world_width = env.x_threshold * 2
-    #         scale = screen_width / world_width
-    #         return int(env.state[0] * scale + screen_width / 2.0)  # MIDDLE OF CART
-        
-    #     # Returned screen requested by gym is 400x600x3, but is sometimes larger
-    #     # such as 800x1200x3. Transpose it into torch order (CHW).
-    #     # screen = env.render(render_mode='rgb_array').transpose((2, 0, 1))
-    #     screen = env.render().transpose((2, 0, 1))
-        
-    #     # Cart is in the lower half, so strip off the top and bottom of the screen
-    #     _, screen_height, screen_width = screen.shape
-    #     screen = screen[:, int(screen_height*0.4):int(screen_height * 0.8)]
-    #     view_width = int(screen_width * 0.6)
-    #     cart_location = get_cart_location(env, screen_width)+displacement_w
-    #     if cart_location < view_width // 2:
-    #         slice_range = slice(view_width)
-    #     elif cart_location > (screen_width - view_width // 2):
-    #         slice_range = slice(-view_width, None)
-    #     else:
-    #         slice_range = slice(cart_location - view_width // 2,
-    #                             cart_location + view_width // 2)
-    #     # Strip off the edges, so that we have a square image centered on a cart
-    #     screen = screen[:, :, slice_range]
-    #     # Convert to float, rescale, convert to torch tensor
-    #     # (this doesn't require a copy)
-    #     screen = np.ascontiguousarray(screen, dtype=np.float32) / 255
-    #     screen = torch.from_numpy(screen)
-    #     # Resize, and add a batch dimension (BCHW)
-    #     screen = self.resize(screen).unsqueeze(0).to(device)
-    #     screen = screen[:, :, 2:-1, 3:-2]
-    #     return screen
-    
-    # OG VERSION:
-    # def select_action(self, obs):
-    #     with torch.no_grad():
-    #         # Derive a distribution over states state from the last n observations (screens):
-    #         prev_n_obs = self.memory.get_last_n_obs(self.n_screens-1)
-    #         x = torch.cat((prev_n_obs, obs), dim=0).view(1, self.c, self.h, self.w, self.n_screens)
-    #         state_mu, state_logvar = self.vae.encode(x)
-            
-    #         # Determine a distribution over actions given the current observation:
-    #         x = torch.cat((state_mu, torch.exp(state_logvar)), dim=1)
-    #         policy = self.policy_net(x)
-    #         return torch.multinomial(policy, 1)
-
     def select_action(self, obs):
         with torch.no_grad():
             # Derive a distribution over states from the last n observations (vectors):
@@ -626,237 +462,16 @@ class Agent():
 
             return torch.multinomial(policy, 1)
 
-    # OG VERSION:
-    # def get_mini_batches(self):
-    #     # Retrieve transition data in mini batches
-    #     # all_obs_batch, all_actions_batch, reward_batch_t1, done_batch_t2 = self.memory.sample(
-    #     #         self.obs_indices, self.action_indices, self.reward_indices,
-    #     #         self.done_indices, self.max_n_indices, self.batch_size)
-    #     all_obs_batch, all_actions_batch, reward_batch_t1, terminated_batch_t2, truncated_batch_t2 = self.memory.sample(
-    #             self.obs_indices, self.action_indices, self.reward_indices,
-    #             self.terminated_indices, self.truncated_indices, self.max_n_indices, self.batch_size)
-        
-    #     # Retrieve a batch of observations for 3 consecutive points in time
-    #     obs_batch_t0 = all_obs_batch[:, 0:self.n_screens, :, :, :].view(self.batch_size, self.c, self.h, self.w, self.n_screens)
-    #     obs_batch_t1 = all_obs_batch[:, 1:self.n_screens+1, :, :, :].view(self.batch_size, self.c, self.h, self.w, self.n_screens)
-    #     obs_batch_t2 = all_obs_batch[:, 2:self.n_screens+2, :, :, :].view(self.batch_size, self.c, self.h, self.w, self.n_screens)
-        
-    #     # Retrieve a batch of distributions over states for 3 consecutive points in time
-    #     state_mu_batch_t0, state_logvar_batch_t0 = self.vae.encode(obs_batch_t0)
-    #     state_mu_batch_t1, state_logvar_batch_t1 = self.vae.encode(obs_batch_t1)
-    #     state_mu_batch_t2, state_logvar_batch_t2 = self.vae.encode(obs_batch_t2)
-        
-    #     # Combine the sufficient statistics (mean and variance) into a single vector
-    #     state_batch_t0 = torch.cat((state_mu_batch_t0, torch.exp(state_logvar_batch_t0)), dim=1)
-    #     state_batch_t1 = torch.cat((state_mu_batch_t1, torch.exp(state_logvar_batch_t1)), dim=1)
-    #     state_batch_t2 = torch.cat((state_mu_batch_t2, torch.exp(state_logvar_batch_t2)), dim=1)
-        
-    #     # Reparameterize the distribution over states for time t1
-    #     z_batch_t1 = self.vae.reparameterize(state_mu_batch_t1, state_logvar_batch_t1)
-        
-    #     # Retrieve the agent's action history for time t0 and time t1
-    #     action_batch_t0 = all_actions_batch[:, 0].unsqueeze(1)
-    #     action_batch_t1 = all_actions_batch[:, 1].unsqueeze(1)
-        
-    #     # At time t0 predict the state at time t1:
-    #     X = torch.cat((state_batch_t0.detach(), action_batch_t0.float()), dim=1)
-    #     pred_batch_t0t1 = self.transition_net(X)
-
-    #     # Determine the prediction error wrt time t0-t1:
-    #     pred_error_batch_t0t1 = torch.mean(F.mse_loss(
-    #             pred_batch_t0t1, state_mu_batch_t1, reduction='none'), dim=1).unsqueeze(1)
-        
-    #     # return (state_batch_t1, state_batch_t2, action_batch_t1,
-    #     #         reward_batch_t1, done_batch_t2, pred_error_batch_t0t1,
-    #     #         obs_batch_t1, state_mu_batch_t1,
-    #     #         state_logvar_batch_t1, z_batch_t1)
-
-    #     # print(f"\nget_mini_batches - type(terminated_batch_t2): {type(terminated_batch_t2)}")
-    #     # print(f"get_mini_batches - type(truncated_batch_t2): {type(truncated_batch_t2)}\n")
-
-    #     return (state_batch_t1, state_batch_t2, action_batch_t1,
-    #             reward_batch_t1, terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
-    #             obs_batch_t1, state_mu_batch_t1,
-    #             state_logvar_batch_t1, z_batch_t1)
-
-    # def get_mini_batches(self):
-    #     # Retrieve transition data in mini batches
-    #     all_obs_batch, all_actions_batch, reward_batch_t1, terminated_batch_t2, truncated_batch_t2 = self.memory.sample(
-    #             self.obs_indices, self.action_indices, self.reward_indices,
-    #             self.terminated_indices, self.truncated_indices, self.max_n_indices, self.batch_size)
-        
-    #     # Retrieve a batch of observations for 3 consecutive points in time
-    #     obs_batch_t0 = all_obs_batch[:, 0:self.n_screens, :, :, :].view(self.batch_size, self.c, self.h, self.w, self.n_screens)
-    #     obs_batch_t1 = all_obs_batch[:, 1:self.n_screens+1, :, :, :].view(self.batch_size, self.c, self.h, self.w, self.n_screens)
-    #     obs_batch_t2 = all_obs_batch[:, 2:self.n_screens+2, :, :, :].view(self.batch_size, self.c, self.h, self.w, self.n_screens)
-        
-    #     # Retrieve a batch of distributions over states for 3 consecutive points in time
-    #     state_mu_batch_t0, state_logvar_batch_t0 = self.vae.encode(obs_batch_t0)
-    #     state_mu_batch_t1, state_logvar_batch_t1 = self.vae.encode(obs_batch_t1)
-    #     state_mu_batch_t2, state_logvar_batch_t2 = self.vae.encode(obs_batch_t2)
-        
-    #     # Combine the sufficient statistics (mean and variance) into a single vector
-    #     state_batch_t0 = torch.cat((state_mu_batch_t0, torch.exp(state_logvar_batch_t0)), dim=1)
-    #     state_batch_t1 = torch.cat((state_mu_batch_t1, torch.exp(state_logvar_batch_t1)), dim=1)
-    #     state_batch_t2 = torch.cat((state_mu_batch_t2, torch.exp(state_logvar_batch_t2)), dim=1)
-        
-    #     # Reparameterize the distribution over states for time t1
-    #     z_batch_t1 = self.vae.reparameterize(state_mu_batch_t1, state_logvar_batch_t1)
-        
-    #     # Retrieve the agent's action history for time t0 and time t1
-    #     action_batch_t0 = all_actions_batch[:, 0].unsqueeze(1)
-    #     action_batch_t1 = all_actions_batch[:, 1].unsqueeze(1)
-        
-    #     # At time t0 predict the state at time t1:
-    #     X = torch.cat((state_batch_t0.detach(), action_batch_t0.float()), dim=1)
-    #     pred_batch_t0t1 = self.transition_net(X)
-
-    #     # Determine the prediction error wrt time t0-t1:
-    #     pred_error_batch_t0t1 = torch.mean(F.mse_loss(
-    #             pred_batch_t0t1, state_mu_batch_t1, reduction='none'), dim=1).unsqueeze(1)
-
-    #     return (state_batch_t1, state_batch_t2, action_batch_t1,
-    #             reward_batch_t1, terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
-    #             obs_batch_t1, state_mu_batch_t1,
-    #             state_logvar_batch_t1, z_batch_t1)
-
     def kl_div(self, mu_1, sigma_sq_1, mu_2, sigma_sq_2):
         '''
         Calculates the KL Divergence between P(mu_1, sigma_sq_1) and Q(mu_2, sigma_sq_2)
         D_KL[P || Q], where P and Q are Univariate Gaussians.
         '''
         return (1/2)*(
-            2*torch.log(sigma_sq_2 / sigma_sq_1) + \
-            ((sigma_sq_1 ** 2)/(sigma_sq_2 ** 2)) + \
-            ((mu_1 - mu_2) ** 2) / (sigma_sq_2 ** 2) - 1)
-
-    def Gaussian_kl_divergence(self, mu1, sigma1, mu2, sigma2):
-        """
-        Calculate KL divergence between two diagonal multivariate Gaussian distributions.
-
-        Parameters:
-            mu1 (torch.Tensor): Mean of the first distribution.
-            sigma1 (torch.Tensor): Diagonal standard deviations of the first distribution.
-            mu2 (torch.Tensor): Mean of the second distribution.
-            sigma2 (torch.Tensor): Diagonal standard deviations of the second distribution.
-
-        Returns:
-            torch.Tensor: KL divergence.
-        """
-        k = mu1.size(-1)  # Dimensionality of the distributions
-
-        # print(f"\nmu1.shape: {mu1.shape}") # THESE ARE BATCHES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # print(f"sigma1.shape: {sigma1.shape}") # THESE ARE BATCHES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # print(f"mu2.shape: {mu2.shape}") # THESE ARE BATCHES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # print(f"sigma2.shape: {sigma2.shape}\n") # THESE ARE BATCHES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-        # print(f"\nsigma2.reciprocal():\n{sigma2.reciprocal()}\n")
-
-        # print(f"\ntorch.diag_embed(sigma2.reciprocal()).shape: {torch.diag_embed(sigma2.reciprocal()).shape}")
-        # print(f"torch.diag_embed(sigma1).shape: {torch.diag_embed(sigma1).shape}")
-        # print(f"(mu2 - mu1).shape: {(mu2 - mu1).shape}\n")
-
-        # trace_term = torch.trace(
-        #     torch.diag_embed(
-        #         sigma2.reciprocal()
-        #     ) @ torch.diag_embed(sigma1)
-        # )
-
-        trace_term = torch.trace(
-            torch.matmul(
-                torch.diag_embed(
-                    sigma2.reciprocal()
-                ), torch.diag_embed(sigma1)
-            ).squeeze()
+            torch.log(sigma_sq_2 / sigma_sq_1) + \
+            ((sigma_sq_1)/(sigma_sq_2)) + \
+            ((mu_1 - mu_2) ** 2) / (sigma_sq_2) - 1
         )
-
-
-        Mahalanobis_term = torch.t(mu2 - mu1) @ torch.diag_embed(
-            sigma2.reciprocal()
-        ) @ (mu2 - mu1)
-
-        log_term = -k + torch.sum(torch.log(sigma2)) - torch.sum(torch.log(sigma1))
-
-        kl = 0.5 * (trace_term + Mahalanobis_term + log_term)
-
-        return kl
-
-    # def Gaussian_kl_divergence(self, mu1, sigma1, mu2, sigma2):
-    #     """
-    #     Calculate KL divergence between two diagonal multivariate Gaussian distributions.
-
-    #     Parameters:
-    #         mu1 (torch.Tensor): Mean of the first distribution.
-    #         sigma1 (torch.Tensor): Diagonal standard deviations of the first distribution.
-    #         mu2 (torch.Tensor): Mean of the second distribution.
-    #         sigma2 (torch.Tensor): Diagonal standard deviations of the second distribution.
-
-    #     Returns:
-    #         torch.Tensor: KL divergence.
-    #     """
-    #     k = mu1.size(-1)  # Dimensionality of the distributions
-
-    #     print(f"\nmu1: {mu1}")
-    #     print(f"sigma1: {sigma1}")
-    #     print(f"mu2: {mu2}")
-    #     print(f"sigma2: {sigma2}\n")
-
-    #     # Squeeze the extra dimension added by torch.diag_embed
-    #     diag_sigma2_inv = torch.diag_embed(sigma2.reciprocal()).squeeze()
-    #     diag_sigma1 = torch.diag_embed(sigma1).squeeze()
-        
-    #     trace_term = torch.trace(diag_sigma2_inv @ diag_sigma1)
-
-    #     Mahalanobis_term = torch.matmul((mu2 - mu1), diag_sigma2_inv) @ (mu2 - mu1)
-
-    #     log_term = -k + torch.sum(torch.log(sigma2)) - torch.sum(torch.log(sigma1))
-
-    #     kl = 0.5 * (trace_term + Mahalanobis_term + log_term)
-
-    #     return kl
-
-    # def Gaussian_kl_divergence(self, mu1, sigma1, mu2, sigma2):
-    #     """
-    #     Calculate KL divergence between two diagonal multivariate Gaussian distributions.
-
-    #     Parameters:
-    #         mu1 (torch.Tensor): Mean of the first distribution.
-    #         sigma1 (torch.Tensor): Diagonal standard deviations of the first distribution.
-    #         mu2 (torch.Tensor): Mean of the second distribution.
-    #         sigma2 (torch.Tensor): Diagonal standard deviations of the second distribution.
-
-    #     Returns:
-    #         torch.Tensor: KL divergence.
-    #     """
-    #     k = mu1.size(-1)  # Dimensionality of the distributions
-
-    #     # print(f"\nmu1: {mu1}")
-    #     # print(f"sigma1: {sigma1}")
-    #     # print(f"mu2: {mu2}")
-    #     # print(f"sigma2: {sigma2}\n")
-
-    #     # Squeeze the extra dimension added by torch.diag_embed
-    #     diag_sigma2_inv = torch.diag_embed(sigma2.reciprocal()).squeeze()
-    #     diag_sigma1 = torch.diag_embed(sigma1).squeeze()
-        
-    #     trace_term = torch.sum(diag_sigma2_inv * diag_sigma1)
-
-    #     Mahalanobis_term = torch.matmul((mu2 - mu1) * diag_sigma2_inv, (mu2 - mu1))
-    #     # Mahalanobis_term = torch.matmul(
-    #     #     torch.matmul(
-    #     #         (mu2 - mu1), diag_sigma2_inv
-    #     #     ), (mu2 - mu1)
-    #     # )
-
-    #     log_term = -k + torch.sum(torch.log(sigma2)) - torch.sum(torch.log(sigma1))
-
-    #     print(f"\ntrace_term: {trace_term}")
-    #     print(f"Mahalanobis_term: {Mahalanobis_term}")
-    #     print(f"log_term: {log_term}\n")
-
-    #     kl = 0.5 * (trace_term + Mahalanobis_term + log_term)
-
-    #     return kl
 
     def get_mini_batches(self):
         # Retrieve transition data in mini batches
@@ -890,56 +505,13 @@ class Agent():
         X = torch.cat((state_batch_t0.detach(), action_batch_t0.float()), dim=1)
         pred_batch_mean_t0t1, pred_batch_logvar_t0t1 = self.transition_net(X)
 
-        # Determine the prediction error wrt time t0-t1:
-
-        # # MAP MSE:
-        # pred_error_batch_t0t1 = torch.mean(
-        #     F.mse_loss(
-        #         pred_batch_mean_t0t1, state_mu_batch_t1, reduction='none'
-        #     ), dim=1
-        # ).unsqueeze(1)
-
-        # KL Divergence:
+        # Determine the prediction error wrt time t0-t1 using state KL Divergence:
         pred_error_batch_t0t1 = torch.sum(
             self.kl_div(
                 pred_batch_mean_t0t1, torch.exp(pred_batch_logvar_t0t1), 
                 state_mu_batch_t1, torch.exp(state_logvar_batch_t1)
             ), dim = 1
         ).unsqueeze(1)
-
-        print(f"\ntype(pred_batch_mean_t0t1): {type(pred_batch_mean_t0t1)}")
-        print(f"type(torch.exp(pred_batch_logvar_t0t1)): {type(torch.exp(pred_batch_logvar_t0t1))}")
-        print(f"type(state_mu_batch_t1): {type(state_mu_batch_t1)}")
-        print(f"type(torch.exp(state_logvar_batch_t1)): {type(torch.exp(state_logvar_batch_t1))}\n")
-
-        print(f"\npred_batch_mean_t0t1.shape: {pred_batch_mean_t0t1.shape}")
-        print(f"torch.exp(pred_batch_logvar_t0t1).shape: {torch.exp(pred_batch_logvar_t0t1).shape}")
-        print(f"state_mu_batch_t1.shape: {state_mu_batch_t1.shape}")
-        print(f"torch.exp(state_logvar_batch_t1).shape: {torch.exp(state_logvar_batch_t1).shape}\n")
-
-        print(f"\npred_error_batch_t0t1.shape: {pred_error_batch_t0t1.shape}\n")
-
-        # print(f"\npred_batch_mean_t0t1): {pred_batch_mean_t0t1}")
-        # print(f"torch.exp(pred_batch_logvar_t0t1)): {torch.exp(pred_batch_logvar_t0t1)}")
-        # print(f"state_mu_batch_t1): {state_mu_batch_t1}")
-        # print(f"torch.exp(state_logvar_batch_t1)): {torch.exp(state_logvar_batch_t1)}")
-        # print(f"torch.exp(state_logvar_batch_t1)).dim(): {torch.exp(state_logvar_batch_t1).dim()}\n")
-
-
-        pred_error_batch_t0t1_v2 = torch.sum(
-            self.Gaussian_kl_divergence(
-                pred_batch_mean_t0t1, torch.exp(pred_batch_logvar_t0t1), 
-                state_mu_batch_t1, torch.exp(state_logvar_batch_t1)
-            ), dim = 1
-        ).unsqueeze(1)
-
-        # print(f"\npred_error_batch_t0t1.shape: {pred_error_batch_t0t1.shape}\n")
-        # print(f"pred_error_batch_t0t1_v2.shape: {pred_error_batch_t0t1_v2.shape}\n")
-
-        # print(f"pred_batch_mean_t0t1: {pred_batch_mean_t0t1}")
-        # print(f"torch.exp(pred_batch_logvar_t0t1): {torch.exp(pred_batch_logvar_t0t1)}\n")
-        # print(f"state_mu_batch_t1: {state_mu_batch_t1}")
-        # print(f"torch.exp(state_logvar_batch_t1)\n")
 
         return (state_batch_t1, state_batch_t2, action_batch_t1,
                 reward_batch_t1, terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
@@ -961,9 +533,6 @@ class Agent():
             
             # Determine the target EFEs for time t2:
             target_EFEs_batch_t2 = self.target_net(state_batch_t2)
-
-            # print(f"\ntype(terminated_batch_t2): {type(terminated_batch_t2)}")
-            # print(f"type(truncated_batch_t2): {type(truncated_batch_t2)}\n")
             
             # Weigh the target EFEs according to the action distribution:
             # weighted_targets = ((1-done_batch_t2) * policy_batch_t2 *
@@ -1027,9 +596,6 @@ class Agent():
         reward_batch_t1, terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
         obs_batch_t1, state_mu_batch_t1,
         state_logvar_batch_t1, z_batch_t1) = self.get_mini_batches()
-
-        # print(f"\nlearn - type(terminated_batch_t2): {type(terminated_batch_t2)}")
-        # print(f"learn - type(truncated_batch_t2): {type(truncated_batch_t2)}\n")
         
         # Determine the reconstruction loss for time t1
         # recon_batch = self.vae.decode(z_batch_t1, self.batch_size)
@@ -1259,3 +825,318 @@ if __name__ == "__main__":
 
     # x = [i + 1 for i in range(agent.n_episodes)]
     # plot_learning_curve(x, agent.results, figure_file, "AcT Action Selection")
+
+
+
+
+    # def Gaussian_kl_divergence(self, mu1, sigma1, mu2, sigma2):
+    #     """
+    #     Calculate KL divergence between two diagonal multivariate Gaussian distributions.
+
+    #     Parameters:
+    #         mu1 (torch.Tensor): Mean of the first distribution.
+    #         sigma1 (torch.Tensor): Diagonal standard deviations of the first distribution.
+    #         mu2 (torch.Tensor): Mean of the second distribution.
+    #         sigma2 (torch.Tensor): Diagonal standard deviations of the second distribution.
+
+    #     Returns:
+    #         torch.Tensor: KL divergence.
+    #     """
+
+    #     print(f"\nmu1.shape: {mu1.shape}")
+    #     print(f"sigma1.shape: {sigma1.shape}")
+    #     print(f"mu2.shape: {mu2.shape}")
+    #     print(f"sigma2.shape: {sigma2.shape}\n")
+
+    #     k = mu1.size(-1)  # Dimensionality of the distributions
+
+    #     matrix = torch.matmul(
+    #         torch.diag_embed(
+    #             sigma2.reciprocal()
+    #         ), torch.diag_embed(sigma1)
+    #     ).squeeze()
+
+    #     trace_term = torch.trace(
+    #         matrix
+    #     )
+
+    #     Mahalanobis_term = torch.t(mu2 - mu1) @ torch.diag_embed(
+    #         sigma2.reciprocal()
+    #     ) @ (mu2 - mu1)
+
+    #     log_term = -k + torch.sum(torch.log(sigma2)) - torch.sum(torch.log(sigma1))
+
+    #     kl = 0.5 * (trace_term + Mahalanobis_term + log_term)
+
+    #     return kl
+
+
+    # OG VERSION:
+    # def get_mini_batches(self):
+    #     # Retrieve transition data in mini batches
+    #     # all_obs_batch, all_actions_batch, reward_batch_t1, done_batch_t2 = self.memory.sample(
+    #     #         self.obs_indices, self.action_indices, self.reward_indices,
+    #     #         self.done_indices, self.max_n_indices, self.batch_size)
+    #     all_obs_batch, all_actions_batch, reward_batch_t1, terminated_batch_t2, truncated_batch_t2 = self.memory.sample(
+    #             self.obs_indices, self.action_indices, self.reward_indices,
+    #             self.terminated_indices, self.truncated_indices, self.max_n_indices, self.batch_size)
+        
+    #     # Retrieve a batch of observations for 3 consecutive points in time
+    #     obs_batch_t0 = all_obs_batch[:, 0:self.n_screens, :, :, :].view(self.batch_size, self.c, self.h, self.w, self.n_screens)
+    #     obs_batch_t1 = all_obs_batch[:, 1:self.n_screens+1, :, :, :].view(self.batch_size, self.c, self.h, self.w, self.n_screens)
+    #     obs_batch_t2 = all_obs_batch[:, 2:self.n_screens+2, :, :, :].view(self.batch_size, self.c, self.h, self.w, self.n_screens)
+        
+    #     # Retrieve a batch of distributions over states for 3 consecutive points in time
+    #     state_mu_batch_t0, state_logvar_batch_t0 = self.vae.encode(obs_batch_t0)
+    #     state_mu_batch_t1, state_logvar_batch_t1 = self.vae.encode(obs_batch_t1)
+    #     state_mu_batch_t2, state_logvar_batch_t2 = self.vae.encode(obs_batch_t2)
+        
+    #     # Combine the sufficient statistics (mean and variance) into a single vector
+    #     state_batch_t0 = torch.cat((state_mu_batch_t0, torch.exp(state_logvar_batch_t0)), dim=1)
+    #     state_batch_t1 = torch.cat((state_mu_batch_t1, torch.exp(state_logvar_batch_t1)), dim=1)
+    #     state_batch_t2 = torch.cat((state_mu_batch_t2, torch.exp(state_logvar_batch_t2)), dim=1)
+        
+    #     # Reparameterize the distribution over states for time t1
+    #     z_batch_t1 = self.vae.reparameterize(state_mu_batch_t1, state_logvar_batch_t1)
+        
+    #     # Retrieve the agent's action history for time t0 and time t1
+    #     action_batch_t0 = all_actions_batch[:, 0].unsqueeze(1)
+    #     action_batch_t1 = all_actions_batch[:, 1].unsqueeze(1)
+        
+    #     # At time t0 predict the state at time t1:
+    #     X = torch.cat((state_batch_t0.detach(), action_batch_t0.float()), dim=1)
+    #     pred_batch_t0t1 = self.transition_net(X)
+
+    #     # Determine the prediction error wrt time t0-t1:
+    #     pred_error_batch_t0t1 = torch.mean(F.mse_loss(
+    #             pred_batch_t0t1, state_mu_batch_t1, reduction='none'), dim=1).unsqueeze(1)
+        
+    #     # return (state_batch_t1, state_batch_t2, action_batch_t1,
+    #     #         reward_batch_t1, done_batch_t2, pred_error_batch_t0t1,
+    #     #         obs_batch_t1, state_mu_batch_t1,
+    #     #         state_logvar_batch_t1, z_batch_t1)
+
+    #     # print(f"\nget_mini_batches - type(terminated_batch_t2): {type(terminated_batch_t2)}")
+    #     # print(f"get_mini_batches - type(truncated_batch_t2): {type(truncated_batch_t2)}\n")
+
+    #     return (state_batch_t1, state_batch_t2, action_batch_t1,
+    #             reward_batch_t1, terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
+    #             obs_batch_t1, state_mu_batch_t1,
+    #             state_logvar_batch_t1, z_batch_t1)
+
+    # def get_mini_batches(self):
+    #     # Retrieve transition data in mini batches
+    #     all_obs_batch, all_actions_batch, reward_batch_t1, terminated_batch_t2, truncated_batch_t2 = self.memory.sample(
+    #             self.obs_indices, self.action_indices, self.reward_indices,
+    #             self.terminated_indices, self.truncated_indices, self.max_n_indices, self.batch_size)
+        
+    #     # Retrieve a batch of observations for 3 consecutive points in time
+    #     obs_batch_t0 = all_obs_batch[:, 0:self.n_screens, :, :, :].view(self.batch_size, self.c, self.h, self.w, self.n_screens)
+    #     obs_batch_t1 = all_obs_batch[:, 1:self.n_screens+1, :, :, :].view(self.batch_size, self.c, self.h, self.w, self.n_screens)
+    #     obs_batch_t2 = all_obs_batch[:, 2:self.n_screens+2, :, :, :].view(self.batch_size, self.c, self.h, self.w, self.n_screens)
+        
+    #     # Retrieve a batch of distributions over states for 3 consecutive points in time
+    #     state_mu_batch_t0, state_logvar_batch_t0 = self.vae.encode(obs_batch_t0)
+    #     state_mu_batch_t1, state_logvar_batch_t1 = self.vae.encode(obs_batch_t1)
+    #     state_mu_batch_t2, state_logvar_batch_t2 = self.vae.encode(obs_batch_t2)
+        
+    #     # Combine the sufficient statistics (mean and variance) into a single vector
+    #     state_batch_t0 = torch.cat((state_mu_batch_t0, torch.exp(state_logvar_batch_t0)), dim=1)
+    #     state_batch_t1 = torch.cat((state_mu_batch_t1, torch.exp(state_logvar_batch_t1)), dim=1)
+    #     state_batch_t2 = torch.cat((state_mu_batch_t2, torch.exp(state_logvar_batch_t2)), dim=1)
+        
+    #     # Reparameterize the distribution over states for time t1
+    #     z_batch_t1 = self.vae.reparameterize(state_mu_batch_t1, state_logvar_batch_t1)
+        
+    #     # Retrieve the agent's action history for time t0 and time t1
+    #     action_batch_t0 = all_actions_batch[:, 0].unsqueeze(1)
+    #     action_batch_t1 = all_actions_batch[:, 1].unsqueeze(1)
+        
+    #     # At time t0 predict the state at time t1:
+    #     X = torch.cat((state_batch_t0.detach(), action_batch_t0.float()), dim=1)
+    #     pred_batch_t0t1 = self.transition_net(X)
+
+    #     # Determine the prediction error wrt time t0-t1:
+    #     pred_error_batch_t0t1 = torch.mean(F.mse_loss(
+    #             pred_batch_t0t1, state_mu_batch_t1, reduction='none'), dim=1).unsqueeze(1)
+
+    #     return (state_batch_t1, state_batch_t2, action_batch_t1,
+    #             reward_batch_t1, terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
+    #             obs_batch_t1, state_mu_batch_t1,
+    #             state_logvar_batch_t1, z_batch_t1)
+
+    # # OG VERSION:
+    # def kl_div(self, mu_1, sigma_sq_1, mu_2, sigma_sq_2):
+    #     '''
+    #     Calculates the KL Divergence between P(mu_1, sigma_sq_1) and Q(mu_2, sigma_sq_2)
+    #     D_KL[P || Q], where P and Q are Univariate Gaussians.
+    #     '''
+    #     return (1/2)*(
+    #         2*torch.log(sigma_sq_2 / sigma_sq_1) + \ # get rid of the 2 coeff !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    #         ((sigma_sq_1 ** 2)/(sigma_sq_2 ** 2)) + \
+    #         ((mu_1 - mu_2) ** 2) / (sigma_sq_2 ** 2) - 1
+    #     )
+
+    # # def get_screen(self, env, device='cuda', displacement_h=0, displacement_w=0):
+    # def get_screen(self, env, device='cpu', displacement_h=0, displacement_w=0):
+    #     """
+    #     Get a (pre-processed, i.e. cropped, cart-focussed) observation/screen
+    #     For the most part taken from:
+    #         https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html
+    #     """
+        
+    #     def get_cart_location(env, screen_width):
+    #         world_width = env.x_threshold * 2
+    #         scale = screen_width / world_width
+    #         return int(env.state[0] * scale + screen_width / 2.0)  # MIDDLE OF CART
+        
+    #     # Returned screen requested by gym is 400x600x3, but is sometimes larger
+    #     # such as 800x1200x3. Transpose it into torch order (CHW).
+    #     # screen = env.render(render_mode='rgb_array').transpose((2, 0, 1))
+    #     screen = env.render().transpose((2, 0, 1))
+        
+    #     # Cart is in the lower half, so strip off the top and bottom of the screen
+    #     _, screen_height, screen_width = screen.shape
+    #     screen = screen[:, int(screen_height*0.4):int(screen_height * 0.8)]
+    #     view_width = int(screen_width * 0.6)
+    #     cart_location = get_cart_location(env, screen_width)+displacement_w
+    #     if cart_location < view_width // 2:
+    #         slice_range = slice(view_width)
+    #     elif cart_location > (screen_width - view_width // 2):
+    #         slice_range = slice(-view_width, None)
+    #     else:
+    #         slice_range = slice(cart_location - view_width // 2,
+    #                             cart_location + view_width // 2)
+    #     # Strip off the edges, so that we have a square image centered on a cart
+    #     screen = screen[:, :, slice_range]
+    #     # Convert to float, rescale, convert to torch tensor
+    #     # (this doesn't require a copy)
+    #     screen = np.ascontiguousarray(screen, dtype=np.float32) / 255
+    #     screen = torch.from_numpy(screen)
+    #     # Resize, and add a batch dimension (BCHW)
+    #     screen = self.resize(screen).unsqueeze(0).to(device)
+    #     screen = screen[:, :, 2:-1, 3:-2]
+    #     return screen
+    
+    # OG VERSION:
+    # def select_action(self, obs):
+    #     with torch.no_grad():
+    #         # Derive a distribution over states state from the last n observations (screens):
+    #         prev_n_obs = self.memory.get_last_n_obs(self.n_screens-1)
+    #         x = torch.cat((prev_n_obs, obs), dim=0).view(1, self.c, self.h, self.w, self.n_screens)
+    #         state_mu, state_logvar = self.vae.encode(x)
+            
+    #         # Determine a distribution over actions given the current observation:
+    #         x = torch.cat((state_mu, torch.exp(state_logvar)), dim=1)
+    #         policy = self.policy_net(x)
+    #         return torch.multinomial(policy, 1)
+
+# class VAE(nn.Module):
+#     # In part taken from:
+#     #   https://github.com/pytorch/examples/blob/master/vae/main.py
+
+#     def __init__(self, n_screens, n_latent_states, lr=1e-5, device='cpu'):
+#         super(VAE, self).__init__()
+        
+#         self.device = device
+        
+#         self.n_screens = n_screens
+#         self.n_latent_states = n_latent_states
+        
+#         # The convolutional encoder
+#         self.encoder = nn.Sequential(                
+#                 nn.Conv3d(3, 16, (5,5,1), (2,2,1)),
+#                 nn.BatchNorm3d(16),
+#                 nn.ReLU(inplace=True),
+                
+#                 nn.Conv3d(16, 32, (5,5,1), (2,2,1)),
+#                 nn.BatchNorm3d(32),
+#                 nn.ReLU(inplace=True),
+                
+#                 nn.Conv3d(32, 32, (5,5,1), (2,2,1)),
+#                 nn.BatchNorm3d(32),
+#                 nn.ReLU(inplace=True)   
+#                 ).to(self.device)
+        
+#         # The size of the encoder output
+#         self.conv3d_shape_out = (32, 2, 8, self.n_screens)
+#         self.conv3d_size_out = np.prod(self.conv3d_shape_out)
+        
+#         # The convolutional decoder
+#         self.decoder = nn.Sequential(
+#                 nn.ConvTranspose3d(32, 32, (5,5,1), (2,2,1)),
+#                 nn.BatchNorm3d(32),
+#                 nn.ReLU(inplace=True),
+                
+#                 nn.ConvTranspose3d(32, 16, (5,5,1), (2,2,1)),
+#                 nn.BatchNorm3d(16),
+#                 nn.ReLU(inplace=True),
+                
+#                 nn.ConvTranspose3d(16, 3, (5,5,1), (2,2,1)),
+#                 nn.BatchNorm3d(3),
+#                 nn.ReLU(inplace=True),
+                
+#                 nn.Sigmoid()
+#                 ).to(self.device)
+        
+#         # Fully connected layers connected to encoder
+#         self.fc1 = nn.Linear(self.conv3d_size_out, self.conv3d_size_out // 2)
+#         self.fc2_mu = nn.Linear(self.conv3d_size_out // 2, self.n_latent_states)
+#         self.fc2_logvar = nn.Linear(self.conv3d_size_out // 2, self.n_latent_states)
+        
+#         # Fully connected layers connected to decoder
+#         self.fc3 = nn.Linear(self.n_latent_states, self.conv3d_size_out // 2)
+#         self.fc4 = nn.Linear(self.conv3d_size_out // 2, self.conv3d_size_out)
+        
+#         self.optimizer = optim.Adam(self.parameters(), lr)
+        
+#         self.to(self.device)
+
+#     def encode(self, x):
+#         # Deconstruct input x into a distribution over latent states
+#         conv = self.encoder(x)
+#         h1 = F.relu(self.fc1(conv.view(conv.size(0), -1)))
+#         mu, logvar = self.fc2_mu(h1), self.fc2_logvar(h1)
+#         return mu, logvar
+
+#     def reparameterize(self, mu, logvar):
+#         # Apply reparameterization trick
+#         std = torch.exp(0.5*logvar)
+#         eps = torch.randn_like(std)
+#         return mu + eps*std
+
+#     def decode(self, z, batch_size=1):
+#         # Reconstruct original input x from the (reparameterized) latent states
+#         h3 = F.relu(self.fc3(z))
+#         deconv_input = self.fc4(h3)
+#         deconv_input = deconv_input.view([batch_size] + [dim for dim in self.conv3d_shape_out])
+#         y = self.decoder(deconv_input)
+#         return y
+
+#     def forward(self, x, batch_size=1):
+#         # Deconstruct and then reconstruct input x
+#         mu, logvar = self.encode(x)
+#         z = self.reparameterize(mu, logvar)
+#         recon = self.decode(z, batch_size)
+#         return recon, mu, logvar
+
+#     # Reconstruction + KL divergence losses summed over all elements and batch
+#     def loss_function(self, recon_x, x, mu, logvar, batch=True):
+#         '''
+#         Returns the ELBO
+#         '''
+#         if batch:
+#             BCE = F.binary_cross_entropy(recon_x, x, reduction='none')
+#             BCE = torch.sum(BCE, dim=(1, 2, 3, 4))
+            
+#             KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1)
+
+#         else:
+#             BCE = F.binary_cross_entropy(recon_x, x, reduction='sum')
+#             # see Appendix B from VAE paper:
+#             # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
+#             # https://arxiv.org/abs/1312.6114
+#             # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
+#             KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        
+#         return BCE + KLD
