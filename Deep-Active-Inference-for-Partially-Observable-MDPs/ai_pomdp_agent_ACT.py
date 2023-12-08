@@ -462,7 +462,7 @@ class Agent():
 
             return torch.multinomial(policy, 1)
 
-    def kl_div(self, mu_1, sigma_sq_1, mu_2, sigma_sq_2):
+    def gaussian_kl_div(self, mu_1, sigma_sq_1, mu_2, sigma_sq_2):
         '''
         Calculates the KL Divergence between P(mu_1, sigma_sq_1) and Q(mu_2, sigma_sq_2)
         D_KL[P || Q], where P and Q are Univariate Gaussians.
@@ -507,7 +507,7 @@ class Agent():
 
         # Determine the prediction error wrt time t0-t1 using state KL Divergence:
         pred_error_batch_t0t1 = torch.sum(
-            self.kl_div(
+            self.gaussian_kl_div(
                 pred_batch_mean_t0t1, torch.exp(pred_batch_logvar_t0t1), 
                 state_mu_batch_t1, torch.exp(state_logvar_batch_t1)
             ), dim = 1
