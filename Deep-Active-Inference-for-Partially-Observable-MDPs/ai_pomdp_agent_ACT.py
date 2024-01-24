@@ -16,8 +16,10 @@ import matplotlib.pyplot as plt
 Probably can't use a VAE for the observation model, since we need the parameterise the mean and stdev of the obs model.
 Perhaps it's best to go back to feedforward nets only.
 
-Deal with the batch issue in Gaussian_kl_divergence
+Deal with the batch issue in gaussian_kl_div
 '''
+
+unique_node_id = 0
 
 
 def plot_learning_curve(x, scores, figure_file, version):
@@ -46,7 +48,8 @@ def plot_learning_curve(x, scores, figure_file, version):
 
 class ReplayMemory():
     
-    def __init__(self, capacity, obs_shape, device='cuda:0'):
+    # def __init__(self, capacity, obs_shape, device='cuda:0'):
+    def __init__(self, capacity, obs_shape, device='cpu'):
         
         self.device=device
         
@@ -101,6 +104,16 @@ class ReplayMemory():
         # done_batch = self.done_mem[np.array([index-done_indices for index in end_indices])]
         terminated_batch = self.terminated_mem[np.array([index-terminated_indices for index in end_indices])]
         truncated_batch = self.truncated_mem[np.array([index-truncated_indices for index in end_indices])]
+
+        print(f"\n\nend_indices.shape: {end_indices.shape}\n")
+
+        print(f"\nobs_batch.shape: {obs_batch.shape}")
+        print(f"action_batch.shape: {action_batch.shape}")
+        print(f"reward_batch.shape: {reward_batch.shape}")
+        print(f"terminated_batch.shape: {terminated_batch.shape}")
+        print(f"truncated_batch.shape: {truncated_batch.shape}\n\n")
+
+        breakpoint()
         
         # Correct for sampling over multiple episodes
         for i in range(len(end_indices)):
@@ -152,7 +165,8 @@ class ReplayMemory():
     
 class Model(nn.Module):
     
-    def __init__(self, n_inputs, n_outputs, n_hidden=64, lr=1e-3, softmax=False, device='cuda:0'):
+    # def __init__(self, n_inputs, n_outputs, n_hidden=64, lr=1e-3, softmax=False, device='cuda:0'):
+    def __init__(self, n_inputs, n_outputs, n_hidden=64, lr=1e-3, softmax=False, device='cpu'):
         super(Model, self).__init__()
         
         self.n_inputs = n_inputs # Number of inputs
@@ -181,7 +195,8 @@ class Model(nn.Module):
 class MVGaussianModel(nn.Module):
 
     # def __init__(self, n_inputs, n_outputs, n_hidden, lr=1e-3, dropout_prob=0.0, device='cuda:0', model=None):
-    def __init__(self, n_inputs, n_outputs, n_hidden, lr=1e-3, device='cuda:0'):
+    # def __init__(self, n_inputs, n_outputs, n_hidden, lr=1e-3, device='cuda:0'):
+    def __init__(self, n_inputs, n_outputs, n_hidden, lr=1e-3, device='cpu'):
 
         super(MVGaussianModel, self).__init__()
 
@@ -218,7 +233,8 @@ class MVGaussianModel(nn.Module):
         return sampled_value
 
 class VAE(nn.Module):
-    def __init__(self, input_size, n_screens, n_latent_states, lr=1e-5, device='cuda:0'):
+    # def __init__(self, input_size, n_screens, n_latent_states, lr=1e-5, device='cuda:0'):
+    def __init__(self, input_size, n_screens, n_latent_states, lr=1e-5, device='cpu'):
         super(VAE, self).__init__()
 
         self.device = device
@@ -278,6 +294,45 @@ class VAE(nn.Module):
             KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
         return BCE + KLD
+
+class Node:
+
+    def __init__(self, pred_mean_state = None, action_at_tau_minus_one = None, parent = None, name = None):
+        # self.action_space = np.array([0, 1]) # the action space for CartPole-v1
+        self.action_space = torch.tensor([0.0, 1.0]) # the action space for CartPole-v1
+        self.raw_efe = 0 # the output of the AcT planning prediction
+        self.predictive_EFE = 0 # The temporally-discounted EFE prediction.
+        self.pred_mean_state = pred_mean_state # predicted mean of state distributon: parameterizing the state belief
+        # self.pred_var_state = pred_var_state # predicted state variance: parameterizing the state belief
+        self.visit_count = 0 # the number of times this node has been visited
+        self.depth = 0 # the depth of the node from the root. Any time a new node is created, must specify its depth?
+        self.parent = parent # this node's parent node
+        self.children = [] # this node's children
+        self.action_at_tau_minus_one = action_at_tau_minus_one # the action that led to the visitation of the present node
+        self.action_posterior_belief = self.softmax(self.action_space)
+        self.used_actions = [] # a list of all actions that HAVE been used to transition from this node to a subsequent node.
+        self.name = name
+
+    def softmax(self, x):
+
+        sm = nn.Softmax(dim = 0)
+
+        return sm(x)
+
+    def __iter__(self):
+
+        return iter(self.children)
+
+    def __str__(self):
+
+        return (
+            # f"id = {str(self.name)},\n"
+            f"depth = {str(self.depth)},\n"
+            f"prev_action = {str(self.action_at_tau_minus_one)},\n"
+            f"used_actions = {str(self.used_actions)},\n"
+            # f"raw_efe = {str(self.raw_efe)},\n"
+            f"predictive_EFE = \n{str(self.predictive_EFE.item())[:8]}\n"
+        )
 
 class Agent():
     
@@ -342,7 +397,7 @@ class Agent():
     def set_parameters(self, argv):
         
         # The default parameters
-        default_parameters = {'run_id':"_rX", 'device':'cuda:0', # 'device':'cuda',
+        default_parameters = {'run_id':"_rX", 'device':'cpu', # 'device':'cuda:0',
               'env':'CartPole-v1', 'n_episodes':2000, 
               'n_screens':4, 'n_latent_states':32, 'lr_vae':1e-5, 'alpha':25000,
               'n_hidden_trans':64, 'lr_trans':1e-3,
@@ -442,7 +497,372 @@ class Agent():
             self.record = open(self.log_path, "a")
             self.record.write("\n\n-----------------------------------------------------------------\n")
             self.record.write("File opened at {}\n".format(datetime.datetime.now()))
-            self.record.write(msg+"\n")   
+            self.record.write(msg+"\n")
+
+    def select_action_AcT(self, node):
+
+        action_probabilities = node.action_posterior_belief
+
+        np_action_probabilities = action_probabilities.numpy()
+
+        action_indices = np.arange(len(action_probabilities))
+
+        # chosen_action_index = np.random.choice(action_indices, p = action_probabilities) # ??
+        chosen_action_index = np.random.choice(action_indices, p = np_action_probabilities)
+
+        chosen_action = self.all_actions[chosen_action_index]
+
+        return chosen_action
+
+    def select_action_myopic_AcT(self, node):
+        '''
+        returns the action correspondng to the node with the minimum EFE for 1-ply planning.
+        '''
+
+        sorted_children = sorted(node.children, key = lambda child: child.predictive_EFE)
+        action_with_minimum_EFE = sorted_children[0].action_at_tau_minus_one
+
+        return action_with_minimum_EFE
+
+
+    # def tree_policy_AcT(self, node, B):
+    def tree_policy_AcT(self, node):
+
+        while not self.node_is_terminal_leaf_AcT(node):
+
+            # print("\nnode not terminal")
+            if not self.node_fully_expanded_AcT(node):
+                # print("node NOT fully expanded\n")
+                node = self.expand_AcT(node)
+                global unique_node_id
+                node.name = str(unique_node_id)
+                unique_node_id += 1
+
+            else:
+
+                node = self.variational_inference_AcT(node)
+
+        return node
+
+    def get_actions_AcT(self, node):
+
+        unused_actions = []
+
+        for action in self.all_actions:
+
+            if action not in node.used_actions:
+
+                unused_actions.append(action)
+
+        if len(unused_actions) == 0:
+
+            # All actions have been used, so we simply return the best known action
+            sorted_children = sorted(node.children, key = lambda child: child.predictive_EFE)
+            action_with_minimum_EFE = sorted_children[0].action_at_tau_minus_one
+
+            return action_with_minimum_EFE
+
+        else:
+
+            return unused_actions
+
+    def monte_carlo_EFE(mu1, sigma1, mu2, sigma2, observation_model, N = 1):
+        """
+        Calculates the 'N' Monte Carlo approximation of the Expected Free Energy (EFE).
+        sigma1, mu2 parameterise the distribution W.R.T to which the samples are drawn. 
+
+        Parameters:
+            mu1 (torch.Tensor): Mean of the first distribution.
+            sigma1 (torch.Tensor): Diagonal standard deviations of the first distribution.
+            mu2 (torch.Tensor): Mean of the second distribution.
+            sigma2 (torch.Tensor): Diagonal standard deviations of the second distribution.
+            N: The number of Monte Carlo samples to use when approximating the expected entropy. 
+
+        Returns:
+            torch.Tensor: Monte Carlo EFE approximation.
+        """
+
+        # calculate the KL divergenced:
+        kl_div = gaussian_kl_div(mu1, sigma1, mu2, sigma2)
+
+        # draw N samples from the first distribution:
+        epsilon = torch.randn_like(mu1)
+        
+        # Reparameterization trick: transform the sample to match the target distribution
+        sampled_latent_states = torch.tensor([(mu + epsilon * sigma) for i in range(N)])
+
+        # get the predicted/reconstructed observation distribution
+        mu_xi, sigma_xi = observation_model(sampled_latent_states) # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        # compute the observation entropy:
+        H_obs = Gaussian_entropy(sigma_xi)
+
+        # Compute the Monte Carlo observation entropy:
+        mc_obs_ent = (1/N)*torch.sum(H_obs)
+
+        # compute the final approx EFE:
+        mc_efe = kl_div - mc_obs_ent
+
+        return mc_efe
+
+    # OG VERSION:
+    # def expand_AcT(self, node):
+
+    #     # perform an unused action:
+    #     unused_actions = self.get_actions_AcT(node)
+
+    #     a_prime_scalar = random.choice(unused_actions)
+    #     a_prime = torch.tensor([a_prime_scalar], dtype = torch.int64, device = self.device)
+    #     node.used_actions.append(a_prime.item())
+
+    #     # At time t0 predict the state belief at t1, after performing action a_prime in state node.pred_mean_state:
+    #     mean_next_state_phi, var_next_state_phi = self.variational_transition_net(
+    #         a_prime.float()
+    #     ) # action_batch_t1.float()
+
+    #     # At time t1 predict the observation given the predicted state at time t1:
+    #     mean_next_obs_xi, var_next_obs_xi = self.generative_observation_net(
+    #         mean_next_state_phi
+    #     )
+
+    #     # instantiate a child node as a consequence of performing action a_prime
+    #     child_node = Node()
+    #     child_node.parent = node
+    #     child_node.depth = node.depth + 1
+    #     child_node.pred_mean_state = mean_next_state_phi
+    #     child_node.action_at_tau_minus_one = a_prime # the action that led to the visitation of the present node
+
+    #     # Calculate the approximate Expected Free Energy for the predicted time step - t1:
+    #     raw_efe = self.calculate_approximate_EFE(
+    #         mean_next_state_phi, var_next_state_phi, 
+    #         mean_next_obs_xi, var_next_obs_xi
+    #     )
+
+    #     # print(f"\nraw_efe: {raw_efe}\n")
+    #     # breakpoint()
+
+    #     # store the raw efe as intermediate stage in comuting predictive efe
+    #     child_node.raw_efe = raw_efe
+
+    #     # finally, add the child node to the node's children
+    #     node.children.append(child_node)
+
+    #     return child_node
+
+    def expand_AcT(self, node):
+
+        # perform an unused action:
+        unused_actions = self.get_actions_AcT(node)
+
+        a_prime_scalar = random.choice(unused_actions)
+        a_prime = torch.tensor([a_prime_scalar], dtype = torch.int64, device = self.device)
+        node.used_actions.append(a_prime.item())
+
+        # At time t0 predict the state belief at t1, after performing action a_prime in state node.pred_mean_state:
+        mean_next_state_theta, log_var_next_state_theta = self.vae.encode(
+            a_prime.float()
+        ) # action_batch_t1.float()
+
+        # turn the log variance back intoa variance
+        var_next_state_theta = torch.exp(var_next_state_theta)
+
+        # Reparameterize the distribution over states for time t1
+        z_batch_theta = self.vae.reparameterize(mean_next_state_theta, var_next_state_theta)
+
+        # At time t1 predict the observation given the predicted state at time t1:
+        recon_batch_nu = self.vae.decode(z_batch_theta)
+
+        # instantiate a child node as a consequence of performing action a_prime
+        child_node = Node()
+        child_node.parent = node
+        child_node.depth = node.depth + 1
+        child_node.pred_mean_state = mean_next_state_theta
+        child_node.action_at_tau_minus_one = a_prime # the action that led to the visitation of the present node
+
+        # Calculate the approximate Expected Free Energy for the predicted time step - t1:
+        raw_efe = self.calculate_approximate_EFE(
+            mean_next_state_theta, var_next_state_theta, 
+            mean_next_obs_xi, var_next_obs_xi
+        )
+
+        # print(f"\nraw_efe: {raw_efe}\n")
+        # breakpoint()
+
+        # store the raw efe as intermediate stage in comuting predictive efe
+        child_node.raw_efe = raw_efe
+
+        # finally, add the child node to the node's children
+        node.children.append(child_node)
+
+        return child_node
+
+    def node_is_terminal_leaf_AcT(self, node):
+
+        # return self.delta ** node.depth < self.epsilon
+        # return node.depth == 1
+        return node.depth == 2 # artificially limit the AcT tree depth to 2.
+        # return node.depth == 3
+
+    def update_precision(self, depth, alpha, beta):
+
+        per_depth_precision = stats.gamma.rvs(alpha, scale=beta)
+
+        if depth > 0:
+            per_depth_precision *= depth
+
+        return per_depth_precision
+
+    # OG VERSION
+    # def update_action_posterior(self, node, prior_belief_about_policy, precision_tau, EFE_tau):
+
+    #     # # Placeholder values for demonstration (replace with actual values)
+    #     # log_N_nu = torch.tensor(5.0)
+    #     # N_nu_prime = torch.tensor(10.0)
+    #     # G_tilde = torch.tensor([0.4, 21.2, 8.08, 717.3])
+
+    #     # # Calculate E
+    #     # E = torch.sqrt((2 * torch.log(N_nu)) / (N_nu_prime))
+
+    #     # # Calculate the expression
+    #     # result = torch.sigmoid(torch.log(E) - gamma * G_tilde)
+
+    #     # compute the argument to the Boltzmann distribution over actions:
+    #     action_dist_arg = torch.tensor(
+    #         [(self.exploration_factor * np.log(policy_prior) - precision_tau * EFE_tau.cpu().detach().numpy()) \
+    #         for policy_prior in prior_belief_about_policy]
+    #     )
+
+    #     # Construct the Boltzmann distribution over actions - posterior belief about actions (posterior action probabilities):
+    #     action_probs = self.softmax(action_dist_arg)
+
+    #     node.action_posterior_belief = action_probs
+
+    #     return action_probs
+
+    # def update_action_posterior(self, node, prior_belief_about_policy, precision_tau, EFE_tau):
+    def update_action_posterior(self, node, precision_tau):
+        '''
+        node: the "child node" in the E prior distribution
+        node.parent: the "current node" in the E prior distribution.
+        '''
+
+        N_nu = node.parent.visit_count
+        N_nu_prime = node.visit_count
+        G_tilde = node.predictive_EFE
+
+        E_prior = torch.sqrt((2 * torch.log(N_nu)) / (N_nu_prime))
+
+        action_posterior = torch.sigmoid(torch.log(E_prior) - precision_tau * G_tilde)
+
+        # node.action_posterior_belief = action_posterior
+
+        return action_posterior
+
+    # OG VERSION
+    # def variational_inference_AcT(self, node):
+
+    #     # # Compute the policy prior - 𝐄:
+    #     # prior_belief_about_policy = np.array(
+    #     #     [math.sqrt((2 * math.log(node.visit_count)) / child_node.visit_count) \
+    #     #     for child_node in node.children]
+    #     # )
+        
+    #     # # PUSH E THROUGH A SOFTMAX TO MAKE IT A PROB DIST - TOTAL HACK 
+    #     # prior_belief_about_policy = self.softmax(torch.tensor(prior_belief_about_policy, dtype = torch.float32, device = self.device))
+
+    #     # Compute the precision 𝛾_𝜏: for the current time
+    #     precision_tau = self.update_precision(
+    #         depth = node.depth, alpha = 1, beta = 1
+    #     )
+
+    #     # Get delta^tau * G(𝜋_𝜏, 𝑣_𝜏):
+    #     # EFE_tau = node.predictive_EFE 
+
+    #     # Construct the Boltzmann distribution over actions - posterior belief about actions (posterior action probabilities):
+    #     # action_probs = self.update_action_posterior(node, prior_belief_about_policy, precision_tau, EFE_tau)
+    #     action_posterior = self.update_action_posterior(node, precision_tau)
+
+    #     node.action_posterior_belief = action_posterior
+
+    #     # sample an action from this Boltzmann distribution:
+    #     selected_child_node = random.choices(node.children, weights = action_posterior)[0]
+
+    #     return selected_child_node
+
+    def variational_inference_AcT(self, node):
+
+        # Compute the precision 𝛾_𝜏: for the current time
+        precision_tau = self.update_precision(
+            depth = node.depth, alpha = 1, beta = 1
+        )
+
+        action_posterior = self.update_action_posterior(node, precision_tau)
+
+        node.action_posterior_belief = action_posterior
+
+        # sample an action from this Boltzmann distribution:
+        selected_child_node = random.choices(node.children, weights = action_posterior)[0]
+
+        return selected_child_node
+
+    # def evaluate_AcT(self, node, A, B, C, delta):
+    def evaluate_AcT(self, node, delta):
+
+        # calculate the "predictive" EFE from the "raw" efe:
+        g_delta = (delta ** node.depth) * node.raw_efe
+
+        # store the "predictive" EFE
+        node.predictive_EFE = g_delta
+
+        return g_delta
+
+    # def path_integrate_AcT(self, node, g_delta):
+    def path_integrate_AcT(self, node, new_efe_value):
+
+        while node != None:
+            node.visit_count += 1
+            # node.predictive_EFE += (1 / node.visit_count) * (node.predictive_EFE - new_efe_value) ## OG
+            node.predictive_EFE += (1 / node.visit_count) * (new_efe_value - node.predictive_EFE)
+            node = node.parent
+
+    def node_fully_expanded_AcT(self, node):
+        '''
+        Returns True iff the input node has exhausted the 
+        action space in making transitions between itself and its children.
+        '''
+
+        if len(node.children) == len(self.all_actions):
+            return True
+        else:
+            return False
+
+    def active_inferece_tree_search(self, initial_state_belief_mean, delta, epsilon):
+
+        global unique_node_id
+
+        # Initializing the planning tree
+        root_node = Node(
+            pred_mean_state = initial_state_belief_mean,
+            action_at_tau_minus_one = None, 
+            parent = None,
+            name = str(unique_node_id)
+        )
+
+        unique_node_id += 1
+
+        # Begin AcT planning - hardcoded for 1-ply "planning" for the bootstrap phase
+        for t in range(1, self.number_AcT_procedure_execs + 1):
+
+            # treepolicy for 1-ply planning
+            focal_node = self.tree_policy_AcT(root_node)
+
+            # Evaluate the expanded node
+            g_delta = self.evaluate_AcT(focal_node, delta)
+
+            # Perform path integration
+            self.path_integrate_AcT(focal_node, g_delta)
+
+        return root_node
 
     def select_action(self, obs):
         with torch.no_grad():
@@ -473,7 +893,27 @@ class Agent():
             ((mu_1 - mu_2) ** 2) / (sigma_sq_2) - 1
         )
 
+    def Gaussian_entropy(mu, sigma):
+        """
+        Calculate entropy of the parameterised multivariate Gaussian distribution.
+
+        Parameters:
+            mu (torch.Tensor): Mean of the distribution.
+            sigma (torch.Tensor): Diagonal standard deviations of the distribution.
+
+        Returns:
+            torch.Tensor: Gaussian Entropy.
+        """
+        k = mu1.size(-1)  # Dimensionality of the distributions
+
+        log_term = torch.sum(torch.log(sigma))
+
+        entropy = 0.5 * (k + k*torch.log(2*torch.tensor(np.pi)) + log_term)
+
+        return entropy
+
     def get_mini_batches(self):
+
         # Retrieve transition data in mini batches
         all_obs_batch, all_actions_batch, reward_batch_t1, terminated_batch_t2, truncated_batch_t2 = self.memory.sample(
                 self.obs_indices, self.action_indices, self.reward_indices,
@@ -829,7 +1269,7 @@ if __name__ == "__main__":
 
 
 
-    # def Gaussian_kl_divergence(self, mu1, sigma1, mu2, sigma2):
+    # def gaussian_kl_div(self, mu1, sigma1, mu2, sigma2):
     #     """
     #     Calculate KL divergence between two diagonal multivariate Gaussian distributions.
 

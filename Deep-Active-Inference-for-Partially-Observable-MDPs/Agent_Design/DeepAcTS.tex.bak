@@ -1,0 +1,242 @@
+\documentclass{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage[backend=biber]{biblatex}
+\addbibresource{references.bib}
+
+\title{DeepAcTS Agent Structure}
+% \author{Your Name}
+% \date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Notational Conventions}
+I use capital letters like $P$  and $Q$ to denote an arbitrary probability distribution, as opposed to a \textit{particular} probability distribution like the Gaussian: $\mathcal{N}$ or Categorical distribution: $\mathcal{C}$. 
+
+\
+
+Lowercase letters that prefix a pair of parenthesis \textemdash \ like $p(\hdots)$ \textemdash \ are always used to dennote a \textit{neural network}. This neural network either predicts the suffucient statistics for a multivariate Gaussian, or it predicts a categorical distributon. I hope it is sufficiently clear from the context as to which meaning is employed in particular instances. 
+
+\
+
+I use Greek letter sub/superscripts to label neural networks, their predicted values, the associated distribution that their predictions parameterise and any value sampled from this distribution. Hence $p_{\alpha}$ denotes a \textit{particular} neural network and $(\mu_{\alpha}, \Sigma_{\alpha})$ denote the network's predicted values. Finally, $\mathcal{N}_{\alpha}$ denotes the \textit{actual} approximate distribution, parameterised by $(\mu_{\alpha}, \Sigma_{\alpha})$.
+
+\
+
+If $x$ is a variable, then I use $\hat{x}^{(\alpha)}$ to denote that this variable has been \textit{sampled} from the probability distribution: $P_{\alpha}$. A subscript $\tau$ indexes a particular value in some time series. Hence, $\hat{x}_{\tau}^{(\alpha)}$ is the value sampled from $P_{\alpha}$ at time $\tau$. I use $\hat{x}^{(*)}$ to denote that $x$ is sampled from \textit{differing} sources, depending on the training/testing context. See Sections \ref{sec:training_phase} and \ref{sec:testing_phase} for details on where these values are sampled.
+
+\
+
+I use $\mathbb{A}$ to denote the \textit{action space}. This is the set of all action affordances for the agent at all times. Following \cite{DEEP-AIF-For-POMDPs}, I use $\tilde{G}_{\tau}$ to denote the \textit{Expected Free Energy} of each action in the action space, at time $\tau$. Hence the expected free energy for action $a_{\tau}$ is denoted $\tilde{g}(a_{\tau})$. 
+
+\
+
+Finally, $o_{\tau}$ denotes an \textit{observation} at time $\tau$. $s_{\tau}$ denotes the \textit{hidden state} at time $\tau$ and $a_{\tau}$ deontes the \textit{action} at tme $\tau$.
+
+\section{Models and VFE Loss}
+I use the form of the Variational Free Energy from \cite{DEEP-AIF-For-POMDPs} as the free energy loss funtion. This is:
+
+\begin{equation}
+    \begin{aligned}
+        \label{eq:true_VFE}
+        -F_{\tau} &= -\mathbb{E}_{Q(s_{\tau})}[\log{(P(o_{\tau} \ | \ s_{\tau}))}] \\
+        &+ \text{D}_{\text{KL}}[Q(s_{\tau}) \ \| \ P(s_{\tau} \ | \ s_{\tau - 1}, a_{\tau - 1})] \\
+        &+ \text{D}_{\text{KL}}[Q(a_{\tau} \ | \ s_{\tau}) \ \| \ P(a_{\tau} \ | \ s_{\tau})]
+    \end{aligned}
+\end{equation}
+
+$P(s_{\tau} \ | \ s_{\tau - 1}, a_{\tau - 1})$ is the prior state-transition probability. $Q(s_{\tau})$ is the \textit{variational} posterior over hidden states. $P(o_{\tau} \ | \ s_{\tau})$ is the observation likelihood. The variational action posterior is $Q(a_{\tau} \ | \ s_{\tau})$ and the \textit{true} action posterior is $P(a_{\tau} \ | \ s_{\tau})$.
+
+\section{Neural Network Approximations}
+Following a standard assumption in the literature, I aim to aproximate $P(s_{\tau} \ | \ s_{\tau - 1}, a_{\tau - 1})$, $Q(s_{\tau})$ and $P(o_{\tau} \ | \ s_{\tau})$ as diagonal, multivariate Gaussian distributions. Hence, my neural network approximations to these densities output a mean vector: $\mu$ and a vector that constitutes the \textit{diagonal} entries of the covariance matrix: $\Sigma$. For the sake of numerial stability, my Gaussian models actually output \textit{log-variances}: $\log{(\Sigma)}$.
+
+Hence any one of my Gaussian models may be notated as:
+
+\begin{equation}
+    \label{eq:Gauss_model_form}
+    (\mu_{\alpha}(v), \log{(\Sigma_{\alpha}(v))}) = r_{\alpha}(v \ | \ \Omega)
+\end{equation}
+
+Here $\alpha$ denotes the parameters of the Gaussian neural network: $r_{\alpha}$. The variable $v$ is the variable over which the multivariate Gaussian predicted by $r_{\alpha}$ is defined. $v$ could be a state, observation or action (for example). $\Omega$ is an arbitrary set of variables upon which $v$ is conditioned. Hence, in equation \ref{eq:q_theta} we have that:
+
+\begin{equation}
+    \begin{aligned}
+        \label{eq:gauss_model_example}
+        \alpha &= \theta \\
+        r_{\alpha} &= q_{\theta} \\
+        v &= s_{\tau} \\
+        \Omega &= \{\hat{s}_{\tau - 1}^{(\theta)}, \hat{a}_{\tau - 1}^{(*)}, \hat{o}_{\tau}^{(*)}\}
+    \end{aligned}
+\end{equation}
+
+Thus are my approximations:
+
+\begin{equation}
+    \label{eq:q_theta}
+    (\mu_{\theta}(s_{\tau}), \log{(\Sigma_{\theta}(s_{\tau}))}) = q_{\theta}(s_{\tau} \ | \ \hat{s}_{\tau - 1}^{(\theta)}, \hat{a}_{\tau - 1}^{(*)}, \hat{o}_{\tau}^{(*)})
+\end{equation}
+
+\begin{equation}
+    \label{eq:p_phi}
+    (\mu_{\phi}(s_{\tau}), \log{(\Sigma_{\phi}(s_{\tau}))}) = p_{\phi}(s_{\tau} \ | \ \hat{s}_{\tau - 1}^{(\theta)}, \hat{a}_{\tau - 1}^{(*)})
+\end{equation}
+
+\begin{equation}
+    \label{eq:p_nu}
+    (\mu_{\nu}(o_{\tau}), \log{(\Sigma_{\nu}(o_{\tau}))}) = p_{\nu}(o_{\tau} | \hat{s}_{\tau}^{(\theta)})
+\end{equation}
+
+\begin{equation}
+    \label{eq:q_xi}
+    \{\text{Prob}(a_{\tau}) \ \forall a_{\tau} \in \mathbb{A} \ | \ \mu_{\theta}(s_{\tau}), \Sigma_{\theta}(s_{\tau})\} = q_{\xi}(a_{\tau} \ | \ \mu_{\theta}(s_{\tau}), \Sigma_{\theta}(s_{\tau}))
+\end{equation}
+
+\begin{equation}
+    \label{eq:efe_est}
+    \tilde{G}_{\tau} = \{\tilde{g}(a_{\tau}) \ \forall a_{\tau} \in \mathbb{A} \ | \ \mu_{\theta}(s_{\tau}), \Sigma_{\theta}(s_{\tau})\} = f_{\psi}(\mu_{\theta}(s_{\tau}), \Sigma_{\theta}(s_{\tau}))
+\end{equation}
+
+\begin{equation}
+    \label{eq:var_action_post}
+    \{\text{Prob}(a_{\tau}) \ \forall a_{\tau} \in \mathbb{A} \ | \ \tilde{g}(a_{\tau}) \in \tilde{G}_{\tau}\} = \sigma(-\gamma_t \cdot \tilde{G}_{\tau}) = p_{\lambda}(a_{\tau} \ | \ \tilde{G}_{\tau})
+\end{equation}
+
+Where the following values are sampled from \ref{eq:q_theta} by means of the ``Reparameterization Trick'':
+
+% Sampled values via reparameterization trick:
+\begin{equation}
+    \label{eq:q_phi_prev_sample}
+    \hat{s}_{\tau - 1}^{(\theta)} = \mu_{\theta}(s_{\tau - 1}) + \epsilon \odot \Sigma_{\theta}(s_{\tau - 1})
+\end{equation}
+
+\begin{equation}
+    \label{eq:q_phi_curr_sample}
+    \hat{s}_{\tau}^{(\theta)} = \mu_{\theta}(s_{\tau}) + \epsilon \odot \Sigma_{\theta}(s_{\tau})
+\end{equation}
+
+Note: $f_{\psi}$ is a neural network that predicts the Expected Free Energy of future actions, given the multivariate Gaussian statistics over the current state. See \cite{DEEP-AIF-For-POMDPs} for details on this network. We can now obtain an approximation to the densities in \ref{eq:true_VFE} by instantiating a diagonal, multivariate Gaussian distribution for each respective prediction in the above. That is:
+
+\begin{equation}
+    \begin{aligned}
+        \label{eq:approx_Gauss}
+        Q(s_{\tau}) &\approx \mathcal{N}_{\theta}(\mu_{\theta}(s_{\tau}), \Sigma_{\theta}(s_{\tau})) \\
+        P(s_{\tau} \ | \ s_{\tau - 1}, a_{\tau - 1}) &\approx \mathcal{N}_{\phi}(\mu_{\phi}(s_{\tau}), \Sigma_{\phi}(s_{\tau})) \\
+        P(o_{\tau} \ | \ s_{\tau}) &\approx \mathcal{N}_{\nu}(\mu_{\nu}(o_{\tau}), \Sigma_{\nu}(o_{\tau})) \\
+    \end{aligned}
+\end{equation}
+
+Similarly for the Categorical distributions:
+
+\begin{equation}
+    \begin{aligned}
+        \label{eq:approx_Cat}
+        Q(a_{\tau} \ | \ s_{\tau}) &\approx q_{\xi}(a_{\tau} \ | \ \mu_{\theta}(s_{\tau}), \Sigma_{\theta}(s_{\tau})) = \mathcal{C}_{\xi}(a_{\tau}) \\
+        P(a_{\tau} \ | \ s_{\tau}) &\approx p_{\lambda}(a_{\tau} \ | \ \tilde{G}_{\tau}) = \mathcal{C}_{\lambda}(a_{\tau})
+    \end{aligned}
+\end{equation}
+
+Thus, equation \ref{eq:true_VFE} becomes:
+
+\begin{equation}
+    \begin{aligned}
+        \label{eq:approx_VFE}
+        -F_{\tau} &= -\mathbb{E}_{\mathcal{N}_{\theta}}[\log{(\mathcal{N}_{\nu})}] \\
+        &+ \text{D}_{\text{KL}}[\mathcal{N}_{\theta} \ \| \ \mathcal{N}_{\phi}] \\
+        &+ \text{D}_{\text{KL}}[\mathcal{C}_{\xi}(a_{\tau}) \ \| \ \mathcal{C}_{\lambda}(a_{\tau})]
+    \end{aligned}
+\end{equation}
+
+
+\section{Training Phase}
+\label{sec:training_phase}
+To train these networks, I follow the procedure laid out in \cite{learn_gen_ssm_aif}, described here.
+
+I first obtain a dataset: $\mathcal{D}$ of $N$ observation-action pairs solicited by means of a random policy:
+
+\begin{equation}
+    \label{eq:data_D}
+    \mathcal{D} = \{(o_{\tau}, a_{\tau})\} \ | \ \tau \in [0, N] \subset \mathbb{Z} \}
+\end{equation}
+
+Hence the ``starred'' terms (with superscript *) in \ref{eq:q_theta} and \ref{eq:p_phi} become the following:
+
+\begin{equation}
+    \begin{aligned}
+        \label{eq:training_notation}
+        \hat{a}_{\tau - 1}^{(*)} &= \hat{a}_{\tau - 1}^{(\mathcal{D})} \\
+        \hat{o}_{\tau}^{(*)} &= \hat{o}_{\tau}^{(\mathcal{D})}
+    \end{aligned}
+\end{equation}
+
+to indicte that they are sampled from the training dataset $\mathcal{D}$. The networks are then trained via SGD on mini-batches from $\mathcal{D}$ with respect to equation \ref{eq:approx_VFE}. Figure $3$ in \cite{learn_gen_ssm_aif} depicts this process very nicely. 
+
+\section{Testing Phase}
+\label{sec:testing_phase}
+Once trained, these networks can then be used to perform Active Inference and planning. In the Testing phase, actions are now sampled from the action posterior: $q_{\xi}(a_{\tau} \ | \ \mu_{\theta}(s_{\tau}), \Sigma_{\theta}(s_{\tau}))$, instead of randomly:
+
+\begin{equation}
+    \begin{aligned}
+        \label{eq:testing_notation}
+        \hat{a}_{\tau - 1}^{(*)} &= \hat{a}_{\tau - 1}^{(\xi)} \\
+        \hat{o}_{\tau}^{(*)} &= \hat{o}_{\tau}^{(\mathcal{D})}
+    \end{aligned}
+\end{equation}
+
+As an aside: for any possible counterfactual \textit{planning} proceures such as a tree search over future states/observations, the learned observation model: $p_{\nu}(o_{\tau} | \hat{s}_{\tau}^{(\theta)})$ can be used to generate plausible observations from hiden state estimates. Thus, I would use:
+
+\begin{equation}
+    \label{eq:future_obs}
+    \hat{o}_{\tau}^{(*)} = \hat{o}_{\tau}^{(\nu)}
+\end{equation}
+
+in the course of a ``planning as inference'' procedure. I do not consider any counterfactual \textit{planning} proceures here \textemdash \ although that is my ultimate goal \textemdash \ and so I leave this for another time. 
+
+
+\section{References}
+
+\printbibliography
+
+
+\end{document}
+
+
+% \subsection{Subsection}
+% This is a subsection.
+
+% \section{Formatting}
+% You can make text \textbf{bold}, \textit{italic}, or \underline{underlined}. Use \texttt{\textbackslash textbf}, \texttt{\textbackslash textit}, and \texttt{\textbackslash underline}.
+
+% \section{Lists}
+% You can create lists using the \texttt{itemize} or \texttt{enumerate} environments.
+
+% \begin{itemize}
+%     \item Item 1
+%     \item Item 2
+% \end{itemize}
+
+% \begin{enumerate}
+%     \item Numbered item 1
+%     \item Numbered item 2
+% \end{enumerate}
+
+% \section{Equations}
+% You can include mathematical equations using the \texttt{equation} environment.
+
+% \begin{equation}
+%     E=mc^2
+% \end{equation}
+
+
+% \section{References}
+% You can create references using \texttt{\textbackslash label} and \texttt{\textbackslash ref}.
+
+% \begin{equation}
+%     \label{eq:example}
+%     a^2 + b^2 = c^2
+% \end{equation}
+
+% Equation \ref{eq:example} is an example.

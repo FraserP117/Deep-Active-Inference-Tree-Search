@@ -1,0 +1,15 @@
+[0] Config.pm:307> INFO - This is Biber 2.17
+[0] Config.pm:310> INFO - Logfile is 'DeepAcTS.blg'
+[60] biber:340> INFO - === Tue Jan 23, 2024, 10:28:09
+[70] Biber.pm:418> INFO - Reading 'DeepAcTS.bcf'
+[120] Biber.pm:972> INFO - Found 2 citekeys in bib section 0
+[130] Biber.pm:4383> INFO - Processing section 0
+[138] Biber.pm:4574> INFO - Looking for bibtex file 'references.bib' for section 0
+[147] bibtex.pm:1713> INFO - LaTeX decoding ...
+[266] bibtex.pm:1518> INFO - Found BibTeX data source 'references.bib'
+[317] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[317] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[317] Biber.pm:4203> INFO - Sorting list 'nty/global//global/global' of type 'entry' with template 'nty' and locale 'en-US'
+[317] Biber.pm:4209> INFO - No sort tailoring available for locale 'en-US'
+[322] bbl.pm:654> INFO - Writing 'DeepAcTS.bbl' with encoding 'UTF-8'
+[324] bbl.pm:757> INFO - Output to DeepAcTS.bbl

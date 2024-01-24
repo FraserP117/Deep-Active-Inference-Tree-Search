@@ -1,0 +1,143 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global}
+    \entry{learn_gen_ssm_aif}{article}{}
+      \name{author}{5}{}{%
+        {{hash=a9469e9b7223203fccc44acf37205929}{%
+           family={Çatal},
+           familyi={Ç\bibinitperiod},
+           given={Ozan},
+           giveni={O\bibinitperiod}}}%
+        {{hash=891e91c3180a4ec158661bda6a2a12b3}{%
+           family={Wauthier},
+           familyi={W\bibinitperiod},
+           given={Samuel},
+           giveni={S\bibinitperiod}}}%
+        {{hash=38266ac492939aa0c420eb536a242977}{%
+           family={De\bibnamedelima Boom},
+           familyi={D\bibinitperiod\bibinitdelim B\bibinitperiod},
+           given={Cedric},
+           giveni={C\bibinitperiod}}}%
+        {{hash=7ae0249027282ce63a8b130db60b88f6}{%
+           family={Verbelen},
+           familyi={V\bibinitperiod},
+           given={Tim},
+           giveni={T\bibinitperiod}}}%
+        {{hash=f3a7566cafe3d87f70b255c25b92611a}{%
+           family={Dhoedt},
+           familyi={D\bibinitperiod},
+           given={Bart},
+           giveni={B\bibinitperiod}}}%
+      }
+      \strng{namehash}{699fb36c9052c496193e1600226b7edc}
+      \strng{fullhash}{ff47c0df4cfe4280da02a0c506cae12a}
+      \strng{bibnamehash}{699fb36c9052c496193e1600226b7edc}
+      \strng{authorbibnamehash}{699fb36c9052c496193e1600226b7edc}
+      \strng{authornamehash}{699fb36c9052c496193e1600226b7edc}
+      \strng{authorfullhash}{ff47c0df4cfe4280da02a0c506cae12a}
+      \field{sortinit}{Ç}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{In this paper we investigate the active inference framework as a means to enable autonomous behavior in artificial agents. Active inference is a theoretical framework underpinning the way organisms act and observe in the real world. In active inference, agents act in order to minimize their so called free energy, or prediction error. Besides being biologically plausible, active inference has been shown to solve hard exploration problems in various simulated environments. However, these simulations typically require handcrafting a generative model for the agent. Therefore we propose to use recent advances in deep artificial neural networks to learn generative state space models from scratch, using only observation-action sequences. This way we are able to scale active inference to new and challenging problem domains, whilst still building on the theoretical backing of the free energy principle. We validate our approach on the mountain car problem to illustrate that our learnt models can indeed trade-off instrumental value and ambiguity. Furthermore, we show that generative models can also be learnt using high-dimensional pixel observations, both in the OpenAI Gym car racing environment and a real-world robotic navigation task. Finally we show that active inference based policies are an order of magnitude more sample efficient than Deep Q Networks on RL tasks.}
+      \field{issn}{1662-5188}
+      \field{journaltitle}{Frontiers in Computational Neuroscience}
+      \field{title}{Learning Generative State Space Models for Active Inference}
+      \field{volume}{14}
+      \field{year}{2020}
+      \verb{doi}
+      \verb 10.3389/fncom.2020.574372
+      \endverb
+      \verb{urlraw}
+      \verb https://www.frontiersin.org/articles/10.3389/fncom.2020.574372
+      \endverb
+      \verb{url}
+      \verb https://www.frontiersin.org/articles/10.3389/fncom.2020.574372
+      \endverb
+    \endentry
+    \entry{DEEP-AIF-For-POMDPs}{inproceedings}{}
+      \name{author}{2}{}{%
+        {{hash=06c37bfed052127a76e6474ca3f49f37}{%
+           family={Himst},
+           familyi={H\bibinitperiod},
+           given={Otto},
+           giveni={O\bibinitperiod},
+           prefix={van\bibnamedelima der},
+           prefixi={v\bibinitperiod\bibinitdelim d\bibinitperiod}}}%
+        {{hash=cf067a7818cf1d885b2180516a8afe69}{%
+           family={Lanillos},
+           familyi={L\bibinitperiod},
+           given={Pablo},
+           giveni={P\bibinitperiod}}}%
+      }
+      \name{editor}{4}{}{%
+        {{hash=7ae0249027282ce63a8b130db60b88f6}{%
+           family={Verbelen},
+           familyi={V\bibinitperiod},
+           given={Tim},
+           giveni={T\bibinitperiod}}}%
+        {{hash=cf067a7818cf1d885b2180516a8afe69}{%
+           family={Lanillos},
+           familyi={L\bibinitperiod},
+           given={Pablo},
+           giveni={P\bibinitperiod}}}%
+        {{hash=6ba2af6672c84ba8cffc8b86bc35d608}{%
+           family={Buckley},
+           familyi={B\bibinitperiod},
+           given={Christopher\bibnamedelima L.},
+           giveni={C\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=38266ac492939aa0c420eb536a242977}{%
+           family={De\bibnamedelima Boom},
+           familyi={D\bibinitperiod\bibinitdelim B\bibinitperiod},
+           given={Cedric},
+           giveni={C\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Cham}%
+      }
+      \list{publisher}{1}{%
+        {Springer International Publishing}%
+      }
+      \strng{namehash}{a3922fc2b7d1d8fa590d9e392c28b5c9}
+      \strng{fullhash}{a3922fc2b7d1d8fa590d9e392c28b5c9}
+      \strng{bibnamehash}{a3922fc2b7d1d8fa590d9e392c28b5c9}
+      \strng{authorbibnamehash}{a3922fc2b7d1d8fa590d9e392c28b5c9}
+      \strng{authornamehash}{a3922fc2b7d1d8fa590d9e392c28b5c9}
+      \strng{authorfullhash}{a3922fc2b7d1d8fa590d9e392c28b5c9}
+      \strng{editorbibnamehash}{8b15176a83e57ea480f936b194676b3b}
+      \strng{editornamehash}{8b15176a83e57ea480f936b194676b3b}
+      \strng{editorfullhash}{c0f0fffcf97521c4f2c33afa1538123d}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Deep active inference has been proposed as a scalable approach to perception and action that deals with large policy and state spaces. However, current models are limited to fully observable domains. In this paper, we describe a deep active inference model that can learn successful policies directly from high-dimensional sensory inputs. The deep learning architecture optimizes a variant of the expected free energy and encodes the continuous state representation by means of a variational autoencoder. We show, in the OpenAI benchmark, that our approach has comparable or better performance than deep Q-learning, a state-of-the-art deep reinforcement learning algorithm.}
+      \field{booktitle}{Active Inference}
+      \field{isbn}{978-3-030-64919-7}
+      \field{title}{Deep Active Inference for Partially Observable MDPs}
+      \field{year}{2020}
+      \field{pages}{61\bibrangedash 71}
+      \range{pages}{11}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

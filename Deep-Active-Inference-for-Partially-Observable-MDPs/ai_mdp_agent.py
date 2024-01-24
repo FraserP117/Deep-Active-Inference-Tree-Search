@@ -221,7 +221,7 @@ class Agent():
         self.memory = ReplayMemory(self.memory_capacity, self.obs_shape, device=self.device)
         
         # When sampling from memory at index i, obs_indices indicates that we want observations with indices i-obs_indices, works the same for the others
-        self.obs_indices = [2, 1, 0]
+        self.obs_indices = [2, 1, 0] # the third most recent, second most recent and most recent observation???
         self.action_indices = [2, 1]
         self.reward_indices = [1]
 
@@ -340,9 +340,9 @@ class Agent():
         )
         
         # Retrieve a batch of observations for 3 consecutive points in time
-        obs_batch_t0 = all_obs_batch[:, 0].view([self.batch_size] + [dim for dim in self.obs_shape])
-        obs_batch_t1 = all_obs_batch[:, 1].view([self.batch_size] + [dim for dim in self.obs_shape])
-        obs_batch_t2 = all_obs_batch[:, 2].view([self.batch_size] + [dim for dim in self.obs_shape])
+        obs_batch_t0 = all_obs_batch[:, 0].view([self.batch_size] + [dim for dim in self.obs_shape]) # [self.batch_size, [dim for dim in self.obs_shape]]
+        obs_batch_t1 = all_obs_batch[:, 1].view([self.batch_size] + [dim for dim in self.obs_shape]) # [self.batch_size, [dim for dim in self.obs_shape]]
+        obs_batch_t2 = all_obs_batch[:, 2].view([self.batch_size] + [dim for dim in self.obs_shape]) # [self.batch_size, [dim for dim in self.obs_shape]]
         
         # Retrieve the agent's action history for time t0 and time t1
         action_batch_t0 = all_actions_batch[:, 0].unsqueeze(1)
