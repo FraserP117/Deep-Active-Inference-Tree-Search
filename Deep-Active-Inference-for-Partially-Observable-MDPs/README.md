@@ -1,4 +1,4 @@
-# Deep Active Inference for Partially Observable MDPs
+# Deep Active Inference Tree Search (DeepAcTS)
 
 This repository contains the code for the DeepAcTS implementation. It also contains the algorithms published in: van der Himst O., Lanillos P. (2020) [Deep Active Inference for Partially Observable MDPs](https://doi.org/10.1007/978-3-030-64919-7_8). In: Verbelen T., Lanillos P., Buckley C.L., De Boom C. (eds) Active Inference. IWAI 2020. Communications in Computer and Information Science, vol 1326. Springer, Cham. https://doi.org/10.1007/978-3-030-64919-7_8
 
