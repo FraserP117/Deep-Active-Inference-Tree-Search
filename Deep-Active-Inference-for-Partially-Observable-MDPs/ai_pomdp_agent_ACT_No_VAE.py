@@ -357,7 +357,7 @@ class Agent():
               'save_network':True, 'network_save_path':"networks/ai_pomdp_{}net{}.pth", 'network_save_timer':500,
               'load_network':False, 'network_load_path':"networks/ai_pomdp_{}net_rX.pth",
               # 'pre_train_models':False, 'pt_n_episodes':500, 'pt_models_plot':False,
-              'pre_train_models':True, 'pt_n_episodes':500, 'pt_models_plot':True,
+              'pre_train_models':True, 'pt_n_episodes':200, 'pt_models_plot':True,
               'load_pre_trained_vae':False, 'pt_vae_load_path':"networks/pre_trained_vae/vae_n{}_end.pth"}
         # Possible commands:
             # python ai_pomdp_agent.py device=cuda:0
@@ -837,6 +837,24 @@ class Agent():
         q_phi_inputs_t1 = torch.cat((inferred_state_batch_t1, action_batch_t2, obs_batch_t2), dim = 1) # s_{t + 1}, a_{t + 2}, o_{t + 2}
         q_phi_inputs_t2 = torch.cat((inferred_state_batch_t2, action_batch_t3, obs_batch_t3), dim = 1) # s_{t + 2}, a_{t + 3}, o_{t + 3}
 
+        # #####################################################################################################
+        # # DEBUG ONLY
+        # nan_mask_t0 = torch.isnan(q_phi_inputs_t0)
+        # nan_count_t0 = torch.sum(nan_mask_t0).item()
+
+        # # Check for inf values
+        # inf_mask_t0 = torch.isinf(q_phi_inputs_t0)
+        # inf_count_t0 = torch.sum(inf_mask_t0).item()
+
+        # nan_mask_t1 = torch.isnan(q_phi_inputs_t1)
+        # nan_count_t1 = torch.sum(nan_mask_t1).item()
+
+        # # Check for inf values
+        # inf_mask_t1 = torch.isinf(q_phi_inputs_t1)
+        # inf_count_t1 = torch.sum(inf_mask_t1).item()
+        # # DEBUG ONLY
+        # #####################################################################################################
+
         # Retrieve a batch of distributions over states for n_screens consecutive points in time
         state_mu_batch_t0, state_logvar_batch_t0 = self.posterior_transition_net_phi(q_phi_inputs_t0) # \mu{s_t}, \log{\Sigma^2(s_t)}
         state_mu_batch_t1, state_logvar_batch_t1 = self.posterior_transition_net_phi(q_phi_inputs_t1) # \mu{s_{t + 1}}, \log{\Sigma^2(s_{t + 1})}
@@ -863,6 +881,13 @@ class Agent():
         # print(f"get_mini_batches - state_mu_batch_t1:\n{state_mu_batch_t1}")
         # print(f"get_mini_batches - state_logvar_batch_t1:\n{state_logvar_batch_t1}\n\n")
 
+        # print(f"\nget_mini_batches - q_phi_inputs_t0:\n{q_phi_inputs_t0}")
+        # print(f"get_mini_batches - q_phi_inputs_t1:\n{q_phi_inputs_t1}")
+        # print(f"get_mini_batches - nan_count_t0:\n{nan_count_t0}")
+        # print(f"get_mini_batches - inf_count_t0:\n{inf_count_t0}")
+        # print(f"get_mini_batches - nan_count_t1:\n{nan_count_t1}")
+        # print(f"get_mini_batches - inf_count_t1:\n{inf_count_t1}\n\n")
+
         return (
             state_mu_batch_t1, state_logvar_batch_t1, 
             state_mu_batch_t2, state_logvar_batch_t2, 
@@ -872,33 +897,72 @@ class Agent():
             state_logvar_batch_t1, z_batch_t0, z_batch_t1
         )
 
-    # def mc_expected_log_evidence(self, inputs_phi):
-    def mc_expected_log_evidence(self, samples_phi):
+    # # def mc_expected_log_evidence(self, inputs_phi):
+    # def mc_expected_log_evidence(self, samples_phi):
+
+    #     # Generate the batch of predicted observation beliefs
+    #     mu_xi, log_var_xi = self.generative_observation_net_xi(samples_phi)
+
+    #     var_xi = torch.diag_embed(torch.exp(log_var_xi))
+
+    #     # Reparameterize Observation Samples
+    #     samples_xi = self.generative_observation_net_xi.rsample(mu_xi, log_var_xi)
+
+    #     samples_xi_clamped = torch.clamp(samples_xi, min=-1e9, max=1e9)
+
+    #     multivariate_normal_p = torch.distributions.MultivariateNormal(
+    #         loc = mu_xi,
+    #         covariance_matrix = var_xi
+    #     )
+
+    #     # log_likelihood_values_p = multivariate_normal_p.log_prob(samples_xi)
+    #     log_likelihood_values_p = multivariate_normal_p.log_prob(samples_xi_clamped) # here
+
+    #     log_likelihood_values_p_clamped = torch.clamp(log_likelihood_values_p, min=-100.0, max=100.0)
+
+    #     # Compute Monte Carlo Estimate
+    #     mc_log_likelihood = torch.mean(log_likelihood_values_p_clamped)
+
+    #     return mc_log_likelihood
+
+
+    ######################################################################################
+    # Define function to compute log likelihood of sampled observation o given s
+    def mc_log_likelihood_obs_model(self, state_sample_phi):
 
         # Generate the batch of predicted observation beliefs
-        mu_xi, log_var_xi = self.generative_observation_net_xi(samples_phi)
-
-        var_xi = torch.diag_embed(torch.exp(log_var_xi))
+        mu_xi, log_var_xi = self.generative_observation_net_xi(state_sample_phi)
+        # var_xi = torch.diag_embed(torch.exp(log_var_xi))
+        var_xi = torch.exp(log_var_xi)
 
         # Reparameterize Observation Samples
-        samples_xi = self.generative_observation_net_xi.rsample(mu_xi, log_var_xi)
+        obs_sample_xi = self.generative_observation_net_xi.rsample(mu_xi, log_var_xi)
 
-        samples_xi_clamped = torch.clamp(samples_xi, min=-1e9, max=1e9)
+        log_likelihood = -0.5 * ((obs_sample_xi - mu_xi) ** 2 / var_xi + log_var_xi + torch.log(2 * torch.tensor(torch.pi)))
 
-        multivariate_normal_p = torch.distributions.MultivariateNormal(
-            loc = mu_xi,
-            covariance_matrix = var_xi
-        )
+        # print(f"\n\nlog_likelihood: {log_likelihood}")
+        # print(f"torch.sum(log_likelihood): {torch.sum(log_likelihood)}\n\n")
 
-        # log_likelihood_values_p = multivariate_normal_p.log_prob(samples_xi)
-        log_likelihood_values_p = multivariate_normal_p.log_prob(samples_xi_clamped) # here
+        return torch.sum(log_likelihood)
 
-        log_likelihood_values_p_clamped = torch.clamp(log_likelihood_values_p, min=-100.0, max=100.0)
+    # Function to compute negative expected log likelihood
+    def mc_neg_expected_log_evidence(self, samples_phi):
 
-        # Compute Monte Carlo Estimate
-        mc_log_likelihood = torch.mean(log_likelihood_values_p_clamped)
+        neg_log_likelihoods = []
 
-        return mc_log_likelihood
+        for i in range(len(samples_phi)):
+
+            # Compute log likelihood of observation o given sampled s
+            log_likelihood_i = self.mc_log_likelihood_obs_model(samples_phi[i])
+            neg_log_likelihoods.append(log_likelihood_i)
+
+        # Average over all samples
+        neg_expected_log_likelihood = -torch.mean(torch.stack(neg_log_likelihoods))
+
+        # print(f"neg_expected_log_likelihood: {neg_expected_log_likelihood}")
+
+        return neg_expected_log_likelihood
+    ######################################################################################
 
     def compute_VFE(
         self, 
@@ -924,9 +988,17 @@ class Agent():
         entropy_batch = -(policy_batch_t1 * torch.log(policy_batch_t1)).sum(-1).unsqueeze(1)
         
         # Determine the VFE, then take the mean over all batch samples:
-        VFE_batch = expected_log_ev + pred_error_batch_t0t1 + (energy_term_batch - entropy_batch)
+        VFE_batch = expected_log_ev + pred_error_batch_t0t1 + (energy_term_batch - entropy_batch) # OG VERSION
+        # VFE_batch = - expected_log_ev + pred_error_batch_t0t1 + (energy_term_batch - entropy_batch)
 
         VFE = torch.mean(VFE_batch)
+
+        # print(f"\ntorch.mean(expected_log_ev): {torch.mean(expected_log_ev)}\
+        #     \ntorch.mean(pred_error_batch_t0t1): {torch.mean(pred_error_batch_t0t1)}\
+        #     \ntorch.mean(energy_term_batch): {torch.mean(energy_term_batch)}\
+        #     \ntorch.mean(entropy_batch): {torch.mean(entropy_batch)}\
+        #     \nVFE: {VFE}\n"
+        # )
         
         return VFE
 
@@ -996,7 +1068,7 @@ class Agent():
         ) = self.get_mini_batches()
 
         # Determine the reconstruction loss for time t1
-        expected_log_ev = self.mc_expected_log_evidence(z_batch_t1)
+        neg_expected_log_ev = self.mc_neg_expected_log_evidence(z_batch_t1)
         
         # Compute the value network loss:
         value_net_psi_loss = self.compute_value_net_psi_loss(
@@ -1008,7 +1080,7 @@ class Agent():
 
         # Compute the variational free energy:
         VFE = self.compute_VFE(
-            expected_log_ev, 
+            neg_expected_log_ev, 
             state_mu_batch_t1.detach(), state_logvar_batch_t1.detach(),
             pred_error_batch_t0t1
         )
@@ -1060,16 +1132,26 @@ class Agent():
         self.generative_observation_net_xi.optimizer.step()
         self.value_net_psi.optimizer.step()
 
-        return VFE, value_net_psi_loss, expected_log_ev
+        return VFE, value_net_psi_loss, neg_expected_log_ev
 
     def train_models(self):
         """ Train the models on a random policy. """
+
+        # if torch.cuda.is_available():
+        #     print(f'CUDA is available on device: {torch.cuda.get_device_name(0)}')
+        # else:
+        #     print('CUDA is NOT Available')
+
+        # breakpoint()
         
         batch_size = 256
 
         noise_std = 0.1
         
-        losses = []
+        rewards = []
+        VFEs = []
+        neg_exp_log_lis = []
+        val_net_psi_losses = []
 
         for ith_episode in range(self.pt_n_episodes):
             
@@ -1091,16 +1173,22 @@ class Agent():
 
                 self.memory.push(obs, action, -99, terminated, truncated, state_sample)
                 
-                obs, _, terminated, truncated, _ = self.env.step(action.item())
+                obs, reward, terminated, truncated, _ = self.env.step(action.item())
                 obs = torch.tensor(obs, dtype = torch.float32, device = self.device)
                 noisy_obs = obs.cpu() + noise_std * np.random.randn(*obs.shape)
                 noisy_obs = torch.tensor(noisy_obs, dtype = torch.float32, device = self.device)
                 
                 if self.memory.push_count > batch_size: # + self.n_screens*2:
 
-                    VFE, value_net_psi_loss, expected_log_ev = self.learn()
+                    VFE, value_net_psi_loss, neg_expected_log_ev = self.learn()
 
-                    print(f"episode: {ith_episode}, VFE = {VFE}, value_net_psi_loss = {value_net_psi_loss}, expected_log_ev = {expected_log_ev}")
+                    print(f"reward: {reward}, VFE: {VFE:.4f}, neg_expected_log_ev: {neg_expected_log_ev:.4f}, Episode: {ith_episode}/{self.pt_n_episodes}")
+
+                    rewards.append(reward)
+                    VFEs.append(VFE.item())
+                    neg_exp_log_lis.append(neg_expected_log_ev.item())
+                    val_net_psi_losses.append(value_net_psi_loss.item())
+                    # print(f"episode: {ith_episode}, VFE = {VFE}, value_net_psi_loss = {value_net_psi_loss}, expected_log_ev = {expected_log_ev}")
                 
                 if (terminated or truncated):
 
@@ -1113,6 +1201,22 @@ class Agent():
                     #         self.latent_state_dim, ith_episode)
                     #     )
             
+        plt.plot(rewards, color = 'red')
+        plt.title("Rewards")
+        plt.show()
+
+        plt.plot(VFEs, color = 'blue')
+        plt.title("VFE")
+        plt.show()
+
+        plt.plot(neg_exp_log_lis, color = 'green')
+        plt.title("neg expected log li")
+        plt.show()
+
+        plt.plot(val_net_psi_losses, color = 'purple')
+        plt.title("val net loss")
+        plt.show()
+
         self.memory.push_count = 0
         # torch.save(self.vae.state_dict(), "networks/pre_trained_vae/vae_n{}_end.pth".format(self.latent_state_dim)) # UNCOMMENT THIS LATER
 
