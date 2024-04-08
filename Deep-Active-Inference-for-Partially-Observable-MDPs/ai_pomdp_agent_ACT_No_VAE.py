@@ -1295,8 +1295,4 @@ if __name__ == "__main__":
     # agent.train()
     agent.train_models()
 
-    # x = [i + 1 for i in range(agent.n_episodes)]
-    # plot_learning_curve(x, agent.results, figure_file, "AcT Action Selection")
 
-
-    
