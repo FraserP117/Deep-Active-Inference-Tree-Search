@@ -357,7 +357,7 @@ class Agent():
               'save_network':True, 'network_save_path':"networks/ai_pomdp_{}net{}.pth", 'network_save_timer':500,
               'load_network':False, 'network_load_path':"networks/ai_pomdp_{}net_rX.pth",
               # 'pre_train_models':False, 'pt_n_episodes':500, 'pt_models_plot':False,
-              'pre_train_models':True, 'pt_n_episodes':200, 'pt_models_plot':True,
+              'pre_train_models':True, 'pt_n_episodes':300, 'pt_models_plot':True,
               'load_pre_trained_vae':False, 'pt_vae_load_path':"networks/pre_trained_vae/vae_n{}_end.pth"}
         # Possible commands:
             # python ai_pomdp_agent.py device=cuda:0
@@ -888,13 +888,21 @@ class Agent():
         # print(f"get_mini_batches - nan_count_t1:\n{nan_count_t1}")
         # print(f"get_mini_batches - inf_count_t1:\n{inf_count_t1}\n\n")
 
+        # return (
+        #     state_mu_batch_t1, state_logvar_batch_t1, 
+        #     state_mu_batch_t2, state_logvar_batch_t2, 
+        #     action_batch_t1, reward_batch_t1, 
+        #     terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
+        #     obs_batch_t1, state_mu_batch_t1,
+        #     state_logvar_batch_t1, z_batch_t0, z_batch_t1
+        # )
+
         return (
             state_mu_batch_t1, state_logvar_batch_t1, 
             state_mu_batch_t2, state_logvar_batch_t2, 
             action_batch_t1, reward_batch_t1, 
             terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
-            obs_batch_t1, state_mu_batch_t1,
-            state_logvar_batch_t1, z_batch_t0, z_batch_t1
+            obs_batch_t1, z_batch_t0, z_batch_t1
         )
 
     # # def mc_expected_log_evidence(self, inputs_phi):
@@ -925,28 +933,35 @@ class Agent():
 
     #     return mc_log_likelihood
 
-
-    ######################################################################################
     # Define function to compute log likelihood of sampled observation o given s
     def mc_log_likelihood_obs_model(self, state_sample_phi):
 
         # Generate the batch of predicted observation beliefs
         mu_xi, log_var_xi = self.generative_observation_net_xi(state_sample_phi)
+
         # var_xi = torch.diag_embed(torch.exp(log_var_xi))
         var_xi = torch.exp(log_var_xi)
+        var_xi = torch.diag(var_xi) # for use with (b) (var_xi must be a proper matrix)
 
         # Reparameterize Observation Samples
         obs_sample_xi = self.generative_observation_net_xi.rsample(mu_xi, log_var_xi)
 
-        log_likelihood = -0.5 * ((obs_sample_xi - mu_xi) ** 2 / var_xi + log_var_xi + torch.log(2 * torch.tensor(torch.pi)))
+        print(f"\n\nobs_sample_xi: {obs_sample_xi}")
+        print(f"mu_xi: {mu_xi}")
+        print(f"var_xi: {var_xi}")
 
-        # print(f"\n\nlog_likelihood: {log_likelihood}")
+        # log_likelihood = -0.5 * ((obs_sample_xi - mu_xi) ** 2 / var_xi + log_var_xi + torch.log(2 * torch.tensor(torch.pi))) # for use with (a)
+        log_likelihood = self.multiv_gaussian_log_likelihood_T(obs_sample_xi, mu_xi, var_xi) # for use with (b) 
+
+        print(f"log_likelihood: {log_likelihood}\n\n")
+
         # print(f"torch.sum(log_likelihood): {torch.sum(log_likelihood)}\n\n")
 
-        return torch.sum(log_likelihood)
+        # return torch.sum(log_likelihood) # for use with (a)
+        return log_likelihood # for use with (b)
 
     # Function to compute negative expected log likelihood
-    def mc_neg_expected_log_evidence(self, samples_phi):
+    def mc_neg_expected_log_li(self, samples_phi):
 
         neg_log_likelihoods = []
 
@@ -957,12 +972,42 @@ class Agent():
             neg_log_likelihoods.append(log_likelihood_i)
 
         # Average over all samples
-        neg_expected_log_likelihood = -torch.mean(torch.stack(neg_log_likelihoods))
+        # neg_expected_log_likelihood = -torch.mean(torch.stack(neg_log_likelihoods)) # THIS IS PROBABLY WRONG!
+        neg_expected_log_likelihood = -torch.mean(torch.tensor(neg_log_likelihoods)) # This may be wrong
 
         # print(f"neg_expected_log_likelihood: {neg_expected_log_likelihood}")
 
         return neg_expected_log_likelihood
-    ######################################################################################
+
+    def multiv_gaussian_log_likelihood_T(self, input_obs, mu, covariance_matrix):
+        """
+        Compute the log-likelihood of a multivariate Gaussian distribution using PyTorch native functions.
+
+        Parameters:
+            input_obs: torch.Tensor
+                The input data point or tensor of data points. 
+                This is an .
+            mu: torch.Tensor
+                The mean of the Gaussian distribution. As predicted by the obs model.
+            covariance_matrix: torch.Tensor
+                The covariance matrix of the Gaussian distribution. As predicted by the obs model.
+
+        Returns:
+            log_likelihood: torch.Tensor
+                The log-likelihood of the input point(s).
+        """
+
+        # print(f"\n\ninput_obs: {input_obs}")
+        # print(f"mu: {mu}")
+        # print(f"covariance_matrix: {covariance_matrix}\n\n") # extreemly small
+
+        # Create a MultivariateNormal distribution object
+        multivariate_normal = torch.distributions.MultivariateNormal(mu, covariance_matrix)
+
+        # Calculate the log likelihood of the observation given the distribution
+        log_likelihood = multivariate_normal.log_prob(input_obs)
+
+        return log_likelihood
 
     def compute_VFE(
         self, 
@@ -1059,28 +1104,28 @@ class Agent():
         
         # Retrieve mini-batches of data from memory
         (
-            state_mu_batch_t1, state_logvar_batch_t1,
-            state_mu_batch_t2, state_logvar_batch_t2,
+            state_mu_batch_t1, state_logvar_batch_t1, 
+            state_mu_batch_t2, state_logvar_batch_t2, 
             action_batch_t1, reward_batch_t1, 
             terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
-            obs_batch_t1, state_mu_batch_t1,
-            state_logvar_batch_t1, z_batch_t0, z_batch_t1
+            obs_batch_t1, z_batch_t0, z_batch_t1
         ) = self.get_mini_batches()
 
         # Determine the reconstruction loss for time t1
-        neg_expected_log_ev = self.mc_neg_expected_log_evidence(z_batch_t1)
+        neg_expected_log_li = self.mc_neg_expected_log_li(z_batch_t1)
         
         # Compute the value network loss:
         value_net_psi_loss = self.compute_value_net_psi_loss(
             state_mu_batch_t1, state_logvar_batch_t1, 
             state_mu_batch_t2, state_logvar_batch_t2,
             action_batch_t1, reward_batch_t1,
-            terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1
+            terminated_batch_t2, truncated_batch_t2, 
+            pred_error_batch_t0t1
         )
 
         # Compute the variational free energy:
         VFE = self.compute_VFE(
-            neg_expected_log_ev, 
+            neg_expected_log_li, 
             state_mu_batch_t1.detach(), state_logvar_batch_t1.detach(),
             pred_error_batch_t0t1
         )
@@ -1132,7 +1177,7 @@ class Agent():
         self.generative_observation_net_xi.optimizer.step()
         self.value_net_psi.optimizer.step()
 
-        return VFE, value_net_psi_loss, neg_expected_log_ev
+        return VFE, value_net_psi_loss, neg_expected_log_li
 
     def train_models(self):
         """ Train the models on a random policy. """
@@ -1166,6 +1211,11 @@ class Agent():
             state_sample = torch.zeros(self.obs_shape)  # initial hidden state is the zero vector
             action = torch.tensor(np.random.choice(self.all_actions), dtype = torch.int64).unsqueeze(0) # initial action is random
 
+            per_ep_rewards = []
+            per_ep_VFEs = []
+            per_ep_neg_exp_log_lis = []
+            per_ep_val_net_losses = []
+
             while not (terminated or truncated):
 
                 # this function now handles the case of self.pre_train_models:
@@ -1177,17 +1227,27 @@ class Agent():
                 obs = torch.tensor(obs, dtype = torch.float32, device = self.device)
                 noisy_obs = obs.cpu() + noise_std * np.random.randn(*obs.shape)
                 noisy_obs = torch.tensor(noisy_obs, dtype = torch.float32, device = self.device)
+
+                per_ep_rewards.append(reward)
+                per_ep_VFEs.append(0)
+                per_ep_neg_exp_log_lis.append(0)
+                per_ep_val_net_losses.append(0)
                 
                 if self.memory.push_count > batch_size: # + self.n_screens*2:
 
-                    VFE, value_net_psi_loss, neg_expected_log_ev = self.learn()
+                    VFE, value_net_psi_loss, neg_expected_log_li = self.learn()
 
-                    print(f"reward: {reward}, VFE: {VFE:.4f}, neg_expected_log_ev: {neg_expected_log_ev:.4f}, Episode: {ith_episode}/{self.pt_n_episodes}")
+                    # print(f"reward: {reward}, VFE: {VFE:.4f}, neg_expected_log_li: {neg_expected_log_li:.4f}, Episode: {ith_episode}/{self.pt_n_episodes}")
 
-                    rewards.append(reward)
-                    VFEs.append(VFE.item())
-                    neg_exp_log_lis.append(neg_expected_log_ev.item())
-                    val_net_psi_losses.append(value_net_psi_loss.item())
+                    # rewards.append(reward)
+                    # VFEs.append(VFE.item())
+                    # neg_exp_log_lis.append(neg_expected_log_li.item())
+                    # val_net_psi_losses.append(value_net_psi_loss.item())
+
+                    per_ep_VFEs.append(VFE.item())
+                    per_ep_neg_exp_log_lis.append(neg_expected_log_li.item())
+                    per_ep_val_net_losses.append(value_net_psi_loss.item())
+
                     # print(f"episode: {ith_episode}, VFE = {VFE}, value_net_psi_loss = {value_net_psi_loss}, expected_log_ev = {expected_log_ev}")
                 
                 if (terminated or truncated):
@@ -1200,7 +1260,30 @@ class Agent():
                     #         self.vae.state_dict(), "networks/pre_trained_vae/vae_n{}_{:d}.pth".format(
                     #         self.latent_state_dim, ith_episode)
                     #     )
-            
+
+            print(f"Total Episode reward: {sum(per_ep_rewards):.4f}, AVG VFE: {sum(per_ep_VFEs)/len(per_ep_VFEs):.4f}, AVG neg_expected_log_li: {sum(per_ep_neg_exp_log_lis)/len(per_ep_neg_exp_log_lis):.4f}, Episode: {ith_episode}/{self.pt_n_episodes}")
+
+            # per_ep_rewards.append(sum(per_ep_rewards))
+            # VFEs.append(sum(per_ep_VFEs)/len(per_ep_VFEs))
+            # neg_exp_log_lis.append(sum(per_ep_neg_exp_log_lis)/len(per_ep_neg_exp_log_lis))
+            # val_net_psi_losses.append(sum(per_ep_val_net_losses)/len(per_ep_val_net_losses))
+    
+        # plt.plot(rewards, color = 'red')
+        # plt.title("Rewards")
+        # plt.show()
+
+        # plt.plot(VFEs, color = 'blue')
+        # plt.title("VFE")
+        # plt.show()
+
+        # plt.plot(neg_exp_log_lis, color = 'green')
+        # plt.title("neg expected log li")
+        # plt.show()
+
+        # plt.plot(val_net_psi_losses, color = 'purple')
+        # plt.title("val net loss")
+        # plt.show()
+
         plt.plot(rewards, color = 'red')
         plt.title("Rewards")
         plt.show()
@@ -1344,3 +1427,52 @@ if __name__ == "__main__":
 
     # x = [i + 1 for i in range(agent.n_episodes)]
     # plot_learning_curve(x, agent.results, figure_file, "AcT Action Selection")
+
+
+# def univ_gaussian(self, input, mu, var):
+    #     prob = (1. / np.sqrt(2 * np.pi * var)) * \
+    #         np.exp(-(input - mu) ** 2 / (2 * var))
+
+    #     return prob
+
+    # def multiv_gaussian(self, input, mu, var):
+    #     """
+    #     Compute the probability density function of a univariate Gaussian distribution using PyTorch.
+
+    #     Parameters:
+    #         input: torch.Tensor
+    #             The input data point or tensor of data points.
+    #         mu: torch.Tensor
+    #             The mean of the Gaussian distribution.
+    #         var: torch.Tensor
+    #             The variance of the Gaussian distribution.
+
+    #     Returns:
+    #         prob: torch.Tensor
+    #             The probability density function evaluated at the input point(s).
+    #     """
+    #     coefficient = 1. / torch.sqrt(2 * torch.tensor(np.pi) * var)
+    #     exponent = -((input - mu) ** 2) / (2 * var)
+    #     prob = coefficient * torch.exp(exponent)
+    #     return prob
+
+    # def multiv_gaussian_log_likelihood(self, input, mu, var):
+    #     """
+    #     Compute the log-likelihood of a multivariate Gaussian distribution using PyTorch.
+
+    #     Parameters:
+    #         input: torch.Tensor
+    #             The input data point or tensor of data points.
+    #         mu: torch.Tensor
+    #             The mean of the Gaussian distribution.
+    #         var: torch.Tensor
+    #             The variance of the Gaussian distribution.
+
+    #     Returns:
+    #         log_likelihood: torch.Tensor
+    #             The log-likelihood of the input point(s).
+    #     """
+    #     log_coefficient = -0.5 * (torch.log(2 * torch.tensor(np.pi) * var))
+    #     exponent = -0.5 * ((input - mu) ** 2) / var
+    #     log_likelihood = log_coefficient + exponent
+    #     return log_likelihood

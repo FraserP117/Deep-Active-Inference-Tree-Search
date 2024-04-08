@@ -105,15 +105,15 @@ class ReplayMemory():
         terminated_batch = self.terminated_mem[np.array([index-terminated_indices for index in end_indices])]
         truncated_batch = self.truncated_mem[np.array([index-truncated_indices for index in end_indices])]
 
-        print(f"\n\nend_indices.shape: {end_indices.shape}\n")
+        # print(f"\n\nend_indices.shape: {end_indices.shape}\n")
 
-        print(f"\nobs_batch.shape: {obs_batch.shape}")
-        print(f"action_batch.shape: {action_batch.shape}")
-        print(f"reward_batch.shape: {reward_batch.shape}")
-        print(f"terminated_batch.shape: {terminated_batch.shape}")
-        print(f"truncated_batch.shape: {truncated_batch.shape}\n\n")
+        # print(f"\nobs_batch.shape: {obs_batch.shape}")
+        # print(f"action_batch.shape: {action_batch.shape}")
+        # print(f"reward_batch.shape: {reward_batch.shape}")
+        # print(f"terminated_batch.shape: {terminated_batch.shape}")
+        # print(f"truncated_batch.shape: {truncated_batch.shape}\n\n")
 
-        breakpoint()
+        # breakpoint()
         
         # Correct for sampling over multiple episodes
         for i in range(len(end_indices)):
@@ -1265,6 +1265,8 @@ if __name__ == "__main__":
 
     # x = [i + 1 for i in range(agent.n_episodes)]
     # plot_learning_curve(x, agent.results, figure_file, "AcT Action Selection")
+
+    # memes !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 
