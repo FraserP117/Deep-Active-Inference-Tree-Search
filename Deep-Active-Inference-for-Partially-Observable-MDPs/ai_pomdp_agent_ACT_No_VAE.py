@@ -10,6 +10,7 @@ import torchvision.transforms as T
 from PIL import Image
 import matplotlib.pyplot as plt
 
+
 # the sensor uncertainty branch
 
 
@@ -837,24 +838,6 @@ class Agent():
         q_phi_inputs_t1 = torch.cat((inferred_state_batch_t1, action_batch_t2, obs_batch_t2), dim = 1) # s_{t + 1}, a_{t + 2}, o_{t + 2}
         q_phi_inputs_t2 = torch.cat((inferred_state_batch_t2, action_batch_t3, obs_batch_t3), dim = 1) # s_{t + 2}, a_{t + 3}, o_{t + 3}
 
-        # #####################################################################################################
-        # # DEBUG ONLY
-        # nan_mask_t0 = torch.isnan(q_phi_inputs_t0)
-        # nan_count_t0 = torch.sum(nan_mask_t0).item()
-
-        # # Check for inf values
-        # inf_mask_t0 = torch.isinf(q_phi_inputs_t0)
-        # inf_count_t0 = torch.sum(inf_mask_t0).item()
-
-        # nan_mask_t1 = torch.isnan(q_phi_inputs_t1)
-        # nan_count_t1 = torch.sum(nan_mask_t1).item()
-
-        # # Check for inf values
-        # inf_mask_t1 = torch.isinf(q_phi_inputs_t1)
-        # inf_count_t1 = torch.sum(inf_mask_t1).item()
-        # # DEBUG ONLY
-        # #####################################################################################################
-
         # Retrieve a batch of distributions over states for n_screens consecutive points in time
         state_mu_batch_t0, state_logvar_batch_t0 = self.posterior_transition_net_phi(q_phi_inputs_t0) # \mu{s_t}, \log{\Sigma^2(s_t)}
         state_mu_batch_t1, state_logvar_batch_t1 = self.posterior_transition_net_phi(q_phi_inputs_t1) # \mu{s_{t + 1}}, \log{\Sigma^2(s_{t + 1})}
@@ -876,27 +859,6 @@ class Agent():
             ), dim=1
         ).unsqueeze(1)
 
-        # print(f"\n\nget_mini_batches - state_mu_batch_t0:\n{state_mu_batch_t0}")
-        # print(f"get_mini_batches - state_logvar_batch_t0:\n{state_logvar_batch_t0}")
-        # print(f"get_mini_batches - state_mu_batch_t1:\n{state_mu_batch_t1}")
-        # print(f"get_mini_batches - state_logvar_batch_t1:\n{state_logvar_batch_t1}\n\n")
-
-        # print(f"\nget_mini_batches - q_phi_inputs_t0:\n{q_phi_inputs_t0}")
-        # print(f"get_mini_batches - q_phi_inputs_t1:\n{q_phi_inputs_t1}")
-        # print(f"get_mini_batches - nan_count_t0:\n{nan_count_t0}")
-        # print(f"get_mini_batches - inf_count_t0:\n{inf_count_t0}")
-        # print(f"get_mini_batches - nan_count_t1:\n{nan_count_t1}")
-        # print(f"get_mini_batches - inf_count_t1:\n{inf_count_t1}\n\n")
-
-        # return (
-        #     state_mu_batch_t1, state_logvar_batch_t1, 
-        #     state_mu_batch_t2, state_logvar_batch_t2, 
-        #     action_batch_t1, reward_batch_t1, 
-        #     terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
-        #     obs_batch_t1, state_mu_batch_t1,
-        #     state_logvar_batch_t1, z_batch_t0, z_batch_t1
-        # )
-
         return (
             state_mu_batch_t1, state_logvar_batch_t1, 
             state_mu_batch_t2, state_logvar_batch_t2, 
@@ -905,33 +867,6 @@ class Agent():
             obs_batch_t1, z_batch_t0, z_batch_t1
         )
 
-    # # def mc_expected_log_evidence(self, inputs_phi):
-    # def mc_expected_log_evidence(self, samples_phi):
-
-    #     # Generate the batch of predicted observation beliefs
-    #     mu_xi, log_var_xi = self.generative_observation_net_xi(samples_phi)
-
-    #     var_xi = torch.diag_embed(torch.exp(log_var_xi))
-
-    #     # Reparameterize Observation Samples
-    #     samples_xi = self.generative_observation_net_xi.rsample(mu_xi, log_var_xi)
-
-    #     samples_xi_clamped = torch.clamp(samples_xi, min=-1e9, max=1e9)
-
-    #     multivariate_normal_p = torch.distributions.MultivariateNormal(
-    #         loc = mu_xi,
-    #         covariance_matrix = var_xi
-    #     )
-
-    #     # log_likelihood_values_p = multivariate_normal_p.log_prob(samples_xi)
-    #     log_likelihood_values_p = multivariate_normal_p.log_prob(samples_xi_clamped) # here
-
-    #     log_likelihood_values_p_clamped = torch.clamp(log_likelihood_values_p, min=-100.0, max=100.0)
-
-    #     # Compute Monte Carlo Estimate
-    #     mc_log_likelihood = torch.mean(log_likelihood_values_p_clamped)
-
-    #     return mc_log_likelihood
 
     # Define function to compute log likelihood of sampled observation o given s
     def mc_log_likelihood_obs_model(self, state_sample_phi):
@@ -973,9 +908,7 @@ class Agent():
 
         # Average over all samples
         # neg_expected_log_likelihood = -torch.mean(torch.stack(neg_log_likelihoods)) # THIS IS PROBABLY WRONG!
-        neg_expected_log_likelihood = -torch.mean(torch.tensor(neg_log_likelihoods)) # This may be wrong
-
-        # print(f"neg_expected_log_likelihood: {neg_expected_log_likelihood}")
+        neg_expected_log_likelihood = -torch.mean(torch.tensor(neg_log_likelihoods)) # This appears to work better
 
         return neg_expected_log_likelihood
 
@@ -996,10 +929,6 @@ class Agent():
             log_likelihood: torch.Tensor
                 The log-likelihood of the input point(s).
         """
-
-        # print(f"\n\ninput_obs: {input_obs}")
-        # print(f"mu: {mu}")
-        # print(f"covariance_matrix: {covariance_matrix}\n\n") # extreemly small
 
         # Create a MultivariateNormal distribution object
         multivariate_normal = torch.distributions.MultivariateNormal(mu, covariance_matrix)
@@ -1037,13 +966,6 @@ class Agent():
         # VFE_batch = - expected_log_ev + pred_error_batch_t0t1 + (energy_term_batch - entropy_batch)
 
         VFE = torch.mean(VFE_batch)
-
-        # print(f"\ntorch.mean(expected_log_ev): {torch.mean(expected_log_ev)}\
-        #     \ntorch.mean(pred_error_batch_t0t1): {torch.mean(pred_error_batch_t0t1)}\
-        #     \ntorch.mean(energy_term_batch): {torch.mean(energy_term_batch)}\
-        #     \ntorch.mean(entropy_batch): {torch.mean(entropy_batch)}\
-        #     \nVFE: {VFE}\n"
-        # )
         
         return VFE
 
@@ -1141,35 +1063,6 @@ class Agent():
         VFE.backward(retain_graph=True)
         value_net_psi_loss.backward()
 
-
-        # # Print gradients for each network
-        # print("\n\nlearn - Policy Net Gradients:")
-        # for name, param in self.policy_net_nu.named_parameters():
-        #     if param.grad is not None:
-        #         print(f"learn - {name}: {param.grad.norm().item()}")
-
-        # print("\nlearn - Prior Transition Net Gradients:")
-        # for name, param in self.prior_transition_net_theta.named_parameters():
-        #     if param.grad is not None:
-        #         print(f"learn - {name}: {param.grad.norm().item()}")
-
-        # print("\nlearn - Posterior Transition Net Gradients:")
-        # for name, param in self.posterior_transition_net_phi.named_parameters():
-        #     if param.grad is not None:
-        #         print(f"learn - {name}: {param.grad.norm().item()}")
-
-        # print("\nlearn - Generative Observation Net Gradients:")
-        # for name, param in self.generative_observation_net_xi.named_parameters():
-        #     if param.grad is not None:
-        #         print(f"learn - {name}: {param.grad.norm().item()}")
-
-        # print("\nlearn - Value Net Gradients:")
-        # for name, param in self.value_net_psi.named_parameters():
-        #     if param.grad is not None:
-        #         print(f"learn - {name}: {param.grad.norm().item()}")
-        # print(f"\n\n")
-        
-
         # Perform gradient descent:
         self.policy_net_nu.optimizer.step()
         self.prior_transition_net_theta.optimizer.step()
@@ -1263,27 +1156,6 @@ class Agent():
 
             print(f"Total Episode reward: {sum(per_ep_rewards):.4f}, AVG VFE: {sum(per_ep_VFEs)/len(per_ep_VFEs):.4f}, AVG neg_expected_log_li: {sum(per_ep_neg_exp_log_lis)/len(per_ep_neg_exp_log_lis):.4f}, Episode: {ith_episode}/{self.pt_n_episodes}")
 
-            # per_ep_rewards.append(sum(per_ep_rewards))
-            # VFEs.append(sum(per_ep_VFEs)/len(per_ep_VFEs))
-            # neg_exp_log_lis.append(sum(per_ep_neg_exp_log_lis)/len(per_ep_neg_exp_log_lis))
-            # val_net_psi_losses.append(sum(per_ep_val_net_losses)/len(per_ep_val_net_losses))
-    
-        # plt.plot(rewards, color = 'red')
-        # plt.title("Rewards")
-        # plt.show()
-
-        # plt.plot(VFEs, color = 'blue')
-        # plt.title("VFE")
-        # plt.show()
-
-        # plt.plot(neg_exp_log_lis, color = 'green')
-        # plt.title("neg expected log li")
-        # plt.show()
-
-        # plt.plot(val_net_psi_losses, color = 'purple')
-        # plt.title("val net loss")
-        # plt.show()
-
         plt.plot(rewards, color = 'red')
         plt.title("Rewards")
         plt.show()
@@ -1301,12 +1173,11 @@ class Agent():
         plt.show()
 
         self.memory.push_count = 0
+
         # torch.save(self.vae.state_dict(), "networks/pre_trained_vae/vae_n{}_end.pth".format(self.latent_state_dim)) # UNCOMMENT THIS LATER
 
 
     def train(self):
-
-        # THE VECTOR BASED VERSION !!!!!!!!!!!!
 
         filename = f"Deep_AIF_MDP_Cart_Pole_v1"
         figure_file = f"plots/{filename}.png"
@@ -1350,7 +1221,6 @@ class Agent():
             while not (terminated or truncated):
                 
                 # action = self.select_action_and_infer_state(obs)
-                # action = self.select_action_and_infer_state(state, action, noisy_obs) # return the inferred state too ??????????????????????????
                 action, state_sample = self.select_action_and_infer_state(state_sample, action, noisy_obs)
 
                 self.memory.push(noisy_obs, action, reward, terminated, truncated, state_sample)
@@ -1429,50 +1299,4 @@ if __name__ == "__main__":
     # plot_learning_curve(x, agent.results, figure_file, "AcT Action Selection")
 
 
-# def univ_gaussian(self, input, mu, var):
-    #     prob = (1. / np.sqrt(2 * np.pi * var)) * \
-    #         np.exp(-(input - mu) ** 2 / (2 * var))
-
-    #     return prob
-
-    # def multiv_gaussian(self, input, mu, var):
-    #     """
-    #     Compute the probability density function of a univariate Gaussian distribution using PyTorch.
-
-    #     Parameters:
-    #         input: torch.Tensor
-    #             The input data point or tensor of data points.
-    #         mu: torch.Tensor
-    #             The mean of the Gaussian distribution.
-    #         var: torch.Tensor
-    #             The variance of the Gaussian distribution.
-
-    #     Returns:
-    #         prob: torch.Tensor
-    #             The probability density function evaluated at the input point(s).
-    #     """
-    #     coefficient = 1. / torch.sqrt(2 * torch.tensor(np.pi) * var)
-    #     exponent = -((input - mu) ** 2) / (2 * var)
-    #     prob = coefficient * torch.exp(exponent)
-    #     return prob
-
-    # def multiv_gaussian_log_likelihood(self, input, mu, var):
-    #     """
-    #     Compute the log-likelihood of a multivariate Gaussian distribution using PyTorch.
-
-    #     Parameters:
-    #         input: torch.Tensor
-    #             The input data point or tensor of data points.
-    #         mu: torch.Tensor
-    #             The mean of the Gaussian distribution.
-    #         var: torch.Tensor
-    #             The variance of the Gaussian distribution.
-
-    #     Returns:
-    #         log_likelihood: torch.Tensor
-    #             The log-likelihood of the input point(s).
-    #     """
-    #     log_coefficient = -0.5 * (torch.log(2 * torch.tensor(np.pi) * var))
-    #     exponent = -0.5 * ((input - mu) ** 2) / var
-    #     log_likelihood = log_coefficient + exponent
-    #     return log_likelihood
+    
