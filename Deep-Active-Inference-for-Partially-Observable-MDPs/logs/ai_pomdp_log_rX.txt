@@ -5004,3 +5004,33 @@ Custom parameters:
 
 Environment is: CartPole-v1
 Training started at 2024-04-13 15:53:23.588022
+
+
+-----------------------------------------------------------------
+File opened at 2024-04-13 16:34:36.021553
+Default parameters:
+{'run_id': '_rX', 'device': 'cpu', 'env': 'CartPole-v1', 'n_episodes': 2000, 'n_screens': 4, 'n_latent_states': 32, 'lr_vae': 1e-05, 'alpha': 25000, 'n_hidden_trans': 64, 'lr_trans': 0.001, 'n_hidden_pol': 64, 'lr_pol': 0.001, 'n_hidden_val': 64, 'lr_val': 0.0001, 'memory_capacity': 65536, 'batch_size': 32, 'freeze_period': 25, 'Beta': 0.99, 'gamma': 12.0, 'print_timer': 100, 'keep_log': True, 'log_path': 'logs/ai_pomdp_log{}.txt', 'log_save_timer': 10, 'save_results': True, 'results_path': 'results/ai_pomdp_results{}.npz', 'results_save_timer': 500, 'save_network': True, 'network_save_path': 'networks/ai_pomdp_{}net{}.pth', 'network_save_timer': 500, 'load_network': False, 'network_load_path': 'networks/ai_pomdp_{}net_rX.pth', 'pre_train_vae': False, 'pt_vae_n_episodes': 500, 'pt_vae_plot': False, 'load_pre_trained_vae': False, 'pt_vae_load_path': 'networks/pre_trained_vae/vae_n{}_end.pth'}
+Custom parameters:
+
+Environment is: CartPole-v1
+Training started at 2024-04-13 16:34:36.023948
+Episodes:  100, avg score: 10.12, over last 100: 10.07
+Episodes:  200, avg score: 9.76, over last 100: 9.40
+Episodes:  300, avg score: 9.62, over last 100: 9.33
+Episodes:  400, avg score: 10.37, over last 100: 12.64
+Episodes:  500, avg score: 10.65, over last 100: 11.79
+Episodes:  600, avg score: 10.81, over last 100: 11.56
+Episodes:  700, avg score: 11.30, over last 100: 14.26
+Episodes:  800, avg score: 12.44, over last 100: 20.41
+Episodes:  900, avg score: 13.70, over last 100: 23.84
+Episodes: 1000, avg score: 15.38, over last 100: 30.54
+Episodes: 1100, avg score: 18.11, over last 100: 45.43
+Episodes: 1200, avg score: 20.43, over last 100: 45.93
+Episodes: 1300, avg score: 22.15, over last 100: 42.87
+Episodes: 1400, avg score: 24.65, over last 100: 57.17
+Episodes: 1500, avg score: 29.08, over last 100: 91.11
+Episodes: 1600, avg score: 35.68, over last 100: 134.66
+Episodes: 1700, avg score: 41.67, over last 100: 137.63
+Episodes: 1800, avg score: 47.24, over last 100: 142.04
+Episodes: 1900, avg score: 51.95, over last 100: 136.74
+Training finished at 2024-04-13 16:48:17.488614
