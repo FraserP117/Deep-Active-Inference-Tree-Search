@@ -388,9 +388,8 @@ class Agent():
         self.obs_indices = [(self.n_screens+1)-i for i in range(self.n_screens+2)]
         self.action_indices = [2, 1]
         self.reward_indices = [1]
-        # self.done_indices = [0]
-        self.terminated_indices = [0] ################################################### OH BOI #####################################################
-        self.truncated_indices = [0] ################################################### OH BOI #####################################################
+        self.terminated_indices = [0]
+        self.truncated_indices = [0]
         # self.max_n_indices = max(max(self.obs_indices, self.action_indices, self.reward_indices, self.done_indices)) + 1
         self.max_n_indices = max(max(self.obs_indices, self.action_indices, self.reward_indices, self.terminated_indices, self.truncated_indices)) + 1
         
@@ -912,12 +911,236 @@ class Agent():
 
         return entropy
 
+    # # OG VERSION:
+    # def get_mini_batches(self):
+
+    #     # # Retrieve transition data in mini batches - OG VERSION
+    #     # all_obs_batch, all_actions_batch, reward_batch_t1, terminated_batch_t2, truncated_batch_t2 = self.memory.sample(
+    #     #         self.obs_indices, self.action_indices, self.reward_indices,
+    #     #         self.terminated_indices, self.truncated_indices, self.max_n_indices, self.batch_size)
+
+    #     # Retrieve transition data in mini batches
+    #     all_obs_batch, all_actions_batch, reward_batch_t1, terminated_batch_t0, truncated_batch_t0 = self.memory.sample(
+    #             self.obs_indices, self.action_indices, self.reward_indices,
+    #             self.terminated_indices, self.truncated_indices, self.max_n_indices, self.batch_size)
+
+    #     '''
+    #     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    #     PRETTY SURE THAT terminated_batch_t2, truncated_batch_t2 SHOULD BOTH BE T0 (CURRENT TIME STEP) !!!!!!!!!!!!!!
+    #     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    #     '''
+
+    #     # print(f"\nall_obs_batch:\n{all_obs_batch}") 
+    #     # print(f"\nall_actions_batch:\n{all_actions_batch}\n") 
+    #     # print(f"\nreward_batch_t1:\n{reward_batch_t1}\n") 
+    #     # print(f"terminated_batch_t2:\n{terminated_batch_t2}") 
+    #     # print(f"truncated_batch_t2:\n{truncated_batch_t2}\n\n")
+
+    #     # print(f"\nall_obs_batch:\n{all_obs_batch}\n") 
+
+    #     # ACTIONS:
+    #     print("\nall_actions_batch")
+    #     for i, actions in enumerate(all_actions_batch): # i is the location index within the minibatch
+    #         print(i, actions)
+    #     print("\n")
+
+    #     print("\nall_actions_batch - INDEXED")
+    #     for t in range(all_actions_batch.shape[1]): # t is the time index  for each entry in all_actions_batch
+    #         print(t, all_actions_batch[:, t].unsqueeze(1))
+    #     print("\n")
+
+    #     # Retrieve the agent's action history for time t0 and time t1
+    #     action_batch_t0 = all_actions_batch[:, 0] # delete these, only for debug purposes - it's calculate below anyway.
+    #     action_batch_t1 = all_actions_batch[:, 1] # delete these, only for debug purposes - it's calculate below anyway.
+
+    #     print(f"\naction_batch_t0: {action_batch_t0}")
+    #     print(f"action_batch_t1: {action_batch_t1}\n")
+
+    #     breakpoint()
+        
+    #     # Retrieve a batch of observations for n_screens consecutive points in time
+    #     obs_batch_t0 = all_obs_batch[:, 0:self.n_screens, :].view(self.batch_size, -1)
+    #     obs_batch_t1 = all_obs_batch[:, 1:self.n_screens+1, :].view(self.batch_size, -1)
+    #     obs_batch_t2 = all_obs_batch[:, 2:self.n_screens+2, :].view(self.batch_size, -1)
+        
+    #     # Retrieve a batch of distributions over states for n_screens consecutive points in time
+    #     state_mu_batch_t0, state_logvar_batch_t0 = self.vae.encode(obs_batch_t0)
+    #     state_mu_batch_t1, state_logvar_batch_t1 = self.vae.encode(obs_batch_t1)
+    #     state_mu_batch_t2, state_logvar_batch_t2 = self.vae.encode(obs_batch_t2)
+        
+    #     # Combine the sufficient statistics (mean and variance) into a single vector
+    #     state_batch_t0 = torch.cat((state_mu_batch_t0, torch.exp(state_logvar_batch_t0)), dim=1)
+    #     state_batch_t1 = torch.cat((state_mu_batch_t1, torch.exp(state_logvar_batch_t1)), dim=1)
+    #     state_batch_t2 = torch.cat((state_mu_batch_t2, torch.exp(state_logvar_batch_t2)), dim=1)
+        
+    #     # Reparameterize the distribution over states for time t1
+    #     z_batch_t1 = self.vae.reparameterize(state_mu_batch_t1, state_logvar_batch_t1)
+        
+    #     # Retrieve the agent's action history for time t0 and time t1
+    #     action_batch_t0 = all_actions_batch[:, 0].unsqueeze(1)
+    #     action_batch_t1 = all_actions_batch[:, 1].unsqueeze(1)
+
+
+        
+    #     # At time t0 predict the state at time t1:
+    #     X = torch.cat((state_batch_t0.detach(), action_batch_t0.float()), dim=1)
+    #     pred_batch_mean_t0t1, pred_batch_logvar_t0t1 = self.transition_net(X)
+
+    #     # Determine the prediction error wrt time t0-t1 using state KL Divergence:
+    #     pred_error_batch_t0t1 = torch.sum(
+    #         self.gaussian_kl_div(
+    #             pred_batch_mean_t0t1, torch.exp(pred_batch_logvar_t0t1), 
+    #             state_mu_batch_t1, torch.exp(state_logvar_batch_t1)
+    #         ), dim = 1
+    #     ).unsqueeze(1)
+
+    #     # # OG VERSION
+    #     # return (state_batch_t1, state_batch_t2, action_batch_t1,
+    #     #         reward_batch_t1, terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
+    #     #         obs_batch_t1, state_mu_batch_t1,
+    #     #         state_logvar_batch_t1, z_batch_t1)
+
+    #     return (state_batch_t1, state_batch_t2, action_batch_t1,
+    #             reward_batch_t1, terminated_batch_t0, truncated_batch_t0, pred_error_batch_t0t1,
+    #             obs_batch_t1, state_mu_batch_t1,
+    #             state_logvar_batch_t1, z_batch_t1)
+
+
+
+
+
+
+    # # FAILSAFE WORKING VERSION - BEFORE CHANGING ACTION-BATCH-T0 TO T2:
+    # def get_mini_batches(self):
+
+    #     # # Retrieve transition data in mini batches - OG VERSION
+    #     # all_obs_batch, all_actions_batch, reward_batch_t1, terminated_batch_t2, truncated_batch_t2 = self.memory.sample(
+    #     #         self.obs_indices, self.action_indices, self.reward_indices,
+    #     #         self.terminated_indices, self.truncated_indices, self.max_n_indices, self.batch_size)
+
+    #     # Retrieve transition data in mini batches
+    #     all_obs_batch, all_actions_batch, reward_batch_t1, terminated_batch_t0, truncated_batch_t0 = self.memory.sample(
+    #             self.obs_indices, self.action_indices, self.reward_indices,
+    #             self.terminated_indices, self.truncated_indices, self.max_n_indices, self.batch_size)
+
+    #     # # ACTIONS:
+    #     # print("\nall_actions_batch")
+    #     # for i, actions in enumerate(all_actions_batch): # i is the location index within the minibatch
+    #     #     print(i, actions)
+    #     # print("\n")
+
+    #     # print("\nall_actions_batch - INDEXED")
+    #     # for t in range(all_actions_batch.shape[1]): # t is the time index  for each entry in all_actions_batch
+    #     #     print(t, all_actions_batch[:, t].unsqueeze(1))
+    #     # print("\n")
+
+    #     # # # Retrieve the agent's action history for time t0 and time t1
+    #     # # action_batch_t0 = all_actions_batch[:, 0] # delete these, only for debug purposes - it's calculate below anyway.
+    #     # # action_batch_t1 = all_actions_batch[:, 1] # delete these, only for debug purposes - it's calculate below anyway.
+
+    #     # # print(f"\naction_batch_t0: {action_batch_t0}")
+    #     # # print(f"action_batch_t1: {action_batch_t1}\n")
+
+    #     # # Retrieve the agent's action history for time t0 and time t1
+    #     # action_batch_t2 = all_actions_batch[:, 0] # delete these, only for debug purposes - it's calculate below anyway.
+    #     # action_batch_t1 = all_actions_batch[:, 1] # delete these, only for debug purposes - it's calculate below anyway.
+
+    #     # print(f"\naction_batch_t2: {action_batch_t2}")
+    #     # print(f"action_batch_t1: {action_batch_t1}\n")
+
+    #     # breakpoint()
+        
+    #     # Retrieve a batch of observations for n_screens consecutive points in time
+    #     obs_batch_t0 = all_obs_batch[:, 0:self.n_screens, :].view(self.batch_size, -1)
+    #     obs_batch_t1 = all_obs_batch[:, 1:self.n_screens+1, :].view(self.batch_size, -1)
+    #     obs_batch_t2 = all_obs_batch[:, 2:self.n_screens+2, :].view(self.batch_size, -1)
+        
+    #     # Retrieve a batch of distributions over states for n_screens consecutive points in time
+    #     state_mu_batch_t0, state_logvar_batch_t0 = self.vae.encode(obs_batch_t0)
+    #     state_mu_batch_t1, state_logvar_batch_t1 = self.vae.encode(obs_batch_t1)
+    #     state_mu_batch_t2, state_logvar_batch_t2 = self.vae.encode(obs_batch_t2)
+        
+    #     # Combine the sufficient statistics (mean and variance) into a single vector
+    #     state_batch_t0 = torch.cat((state_mu_batch_t0, torch.exp(state_logvar_batch_t0)), dim=1)
+    #     state_batch_t1 = torch.cat((state_mu_batch_t1, torch.exp(state_logvar_batch_t1)), dim=1)
+    #     state_batch_t2 = torch.cat((state_mu_batch_t2, torch.exp(state_logvar_batch_t2)), dim=1)
+        
+    #     # Reparameterize the distribution over states for time t1
+    #     z_batch_t1 = self.vae.reparameterize(state_mu_batch_t1, state_logvar_batch_t1)
+        
+    #     # # OG action_batch_t0 naming
+    #     # # Retrieve the agent's action history for time t0 and time t1
+    #     # action_batch_t0 = all_actions_batch[:, 0].unsqueeze(1)
+    #     # action_batch_t1 = all_actions_batch[:, 1].unsqueeze(1)
+
+    #     # Retrieve the agent's action history for time t0 and time t1
+    #     action_batch_t0 = all_actions_batch[:, 0].unsqueeze(1)
+    #     action_batch_t1 = all_actions_batch[:, 1].unsqueeze(1)
+
+
+    #     # At time t0 predict the state at time t1:
+    #     X = torch.cat((state_batch_t0.detach(), action_batch_t0.float()), dim=1)
+    #     pred_batch_mean_t0t1, pred_batch_logvar_t0t1 = self.transition_net(X)
+
+    #     # Determine the prediction error wrt time t0-t1 using state KL Divergence:
+    #     pred_error_batch_t0t1 = torch.sum(
+    #         self.gaussian_kl_div(
+    #             pred_batch_mean_t0t1, torch.exp(pred_batch_logvar_t0t1), 
+    #             state_mu_batch_t1, torch.exp(state_logvar_batch_t1)
+    #         ), dim = 1
+    #     ).unsqueeze(1)
+
+    #     # # OG VERSION
+    #     # return (state_batch_t1, state_batch_t2, action_batch_t1,
+    #     #         reward_batch_t1, terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
+    #     #         obs_batch_t1, state_mu_batch_t1,
+    #     #         state_logvar_batch_t1, z_batch_t1)
+
+    #     return (state_batch_t1, state_batch_t2, action_batch_t1,
+    #             reward_batch_t1, terminated_batch_t0, truncated_batch_t0, pred_error_batch_t0t1,
+    #             obs_batch_t1, state_mu_batch_t1,
+    #             state_logvar_batch_t1, z_batch_t1)
+
+
+
     def get_mini_batches(self):
 
+        # # Retrieve transition data in mini batches - OG VERSION
+        # all_obs_batch, all_actions_batch, reward_batch_t1, terminated_batch_t2, truncated_batch_t2 = self.memory.sample(
+        #         self.obs_indices, self.action_indices, self.reward_indices,
+        #         self.terminated_indices, self.truncated_indices, self.max_n_indices, self.batch_size)
+
         # Retrieve transition data in mini batches
-        all_obs_batch, all_actions_batch, reward_batch_t1, terminated_batch_t2, truncated_batch_t2 = self.memory.sample(
+        all_obs_batch, all_actions_batch, reward_batch_t1, terminated_batch_t0, truncated_batch_t0 = self.memory.sample(
                 self.obs_indices, self.action_indices, self.reward_indices,
                 self.terminated_indices, self.truncated_indices, self.max_n_indices, self.batch_size)
+
+        # # ACTIONS:
+        # print("\nall_actions_batch")
+        # for i, actions in enumerate(all_actions_batch): # i is the location index within the minibatch
+        #     print(i, actions)
+        # print("\n")
+
+        # print("\nall_actions_batch - INDEXED")
+        # for t in range(all_actions_batch.shape[1]): # t is the time index  for each entry in all_actions_batch
+        #     print(t, all_actions_batch[:, t].unsqueeze(1))
+        # print("\n")
+
+        # # # Retrieve the agent's action history for time t0 and time t1
+        # # action_batch_t0 = all_actions_batch[:, 0] # delete these, only for debug purposes - it's calculate below anyway.
+        # # action_batch_t1 = all_actions_batch[:, 1] # delete these, only for debug purposes - it's calculate below anyway.
+
+        # # print(f"\naction_batch_t0: {action_batch_t0}")
+        # # print(f"action_batch_t1: {action_batch_t1}\n")
+
+        # # Retrieve the agent's action history for time t0 and time t1
+        # action_batch_t2 = all_actions_batch[:, 0] # delete these, only for debug purposes - it's calculate below anyway.
+        # action_batch_t1 = all_actions_batch[:, 1] # delete these, only for debug purposes - it's calculate below anyway.
+
+        # print(f"\naction_batch_t2: {action_batch_t2}")
+        # print(f"action_batch_t1: {action_batch_t1}\n")
+
+        # breakpoint()
         
         # Retrieve a batch of observations for n_screens consecutive points in time
         obs_batch_t0 = all_obs_batch[:, 0:self.n_screens, :].view(self.batch_size, -1)
@@ -937,34 +1160,67 @@ class Agent():
         # Reparameterize the distribution over states for time t1
         z_batch_t1 = self.vae.reparameterize(state_mu_batch_t1, state_logvar_batch_t1)
         
-        # Retrieve the agent's action history for time t0 and time t1
-        action_batch_t0 = all_actions_batch[:, 0].unsqueeze(1)
-        action_batch_t1 = all_actions_batch[:, 1].unsqueeze(1)
-        
-        # At time t0 predict the state at time t1:
-        X = torch.cat((state_batch_t0.detach(), action_batch_t0.float()), dim=1)
-        pred_batch_mean_t0t1, pred_batch_logvar_t0t1 = self.transition_net(X)
+        # # OG action_batch_t0 naming
+        # # Retrieve the agent's action history for time t0 and time t1
+        # action_batch_t0 = all_actions_batch[:, 0].unsqueeze(1)
+        # action_batch_t1 = all_actions_batch[:, 1].unsqueeze(1)
 
-        # Determine the prediction error wrt time t0-t1 using state KL Divergence:
-        pred_error_batch_t0t1 = torch.sum(
+        # Retrieve the agent's action history for time t2 and time t1 (second-last and last action)
+        action_batch_t2 = all_actions_batch[:, 0].unsqueeze(1)
+        action_batch_t1 = all_actions_batch[:, 1].unsqueeze(1)
+
+
+        # At time t2 (two time steps ago) predict the state at time t1 (one time step ago):
+        X = torch.cat((state_batch_t2.detach(), action_batch_t2.float()), dim = 1) # was t0
+        pred_batch_mean_t1, pred_batch_logvar_t1 = self.transition_net(X)
+
+        # Determine the prediction error wrt time t2-t1 using KL Divergence:
+        pred_error_batch_t2t1 = torch.sum(
             self.gaussian_kl_div(
-                pred_batch_mean_t0t1, torch.exp(pred_batch_logvar_t0t1), 
+                pred_batch_mean_t1, torch.exp(pred_batch_logvar_t1), 
                 state_mu_batch_t1, torch.exp(state_logvar_batch_t1)
             ), dim = 1
         ).unsqueeze(1)
 
+        # # OG VERSION
+        # return (state_batch_t1, state_batch_t2, action_batch_t1,
+        #         reward_batch_t1, terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
+        #         obs_batch_t1, state_mu_batch_t1,
+        #         state_logvar_batch_t1, z_batch_t1)
+
         return (state_batch_t1, state_batch_t2, action_batch_t1,
-                reward_batch_t1, terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
+                reward_batch_t1, terminated_batch_t0, truncated_batch_t0, pred_error_batch_t2t1,
                 obs_batch_t1, state_mu_batch_t1,
                 state_logvar_batch_t1, z_batch_t1)
+
+
         
     # def compute_value_net_loss(self, state_batch_t1, state_batch_t2,
     #                        action_batch_t1, reward_batch_t1,
     #                        done_batch_t2, pred_error_batch_t0t1):
+
+        
+    # # def compute_value_net_loss(self, state_batch_t1, state_batch_t2,
+    # #                        action_batch_t1, reward_batch_t1,
+    # #                        done_batch_t2, pred_error_batch_t0t1):
+
+    # # OG VERSION OF TERMINATED AND TRUNCATED
+    # def compute_value_net_loss(
+    #     self, state_batch_t1, state_batch_t2,
+    #     action_batch_t1, reward_batch_t1,
+    #     terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1
+    # ):
+
+    # def compute_value_net_loss(
+    #     self, state_batch_t1, state_batch_t2,
+    #     action_batch_t1, reward_batch_t1,
+    #     terminated_batch_t0, truncated_batch_t0, pred_error_batch_t0t1
+    # ):
+
     def compute_value_net_loss(
         self, state_batch_t1, state_batch_t2,
         action_batch_t1, reward_batch_t1,
-        terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1
+        terminated_batch_t0, truncated_batch_t0, pred_error_batch_t2t1
     ):
     
         with torch.no_grad():
@@ -977,11 +1233,12 @@ class Agent():
             # Weigh the target EFEs according to the action distribution:
             # weighted_targets = ((1-done_batch_t2) * policy_batch_t2 *
             #                     target_EFEs_batch_t2).sum(-1).unsqueeze(1)
-            weighted_targets = ((1-(terminated_batch_t2 | truncated_batch_t2)) * policy_batch_t2 *
+
+            weighted_targets = ((1-(terminated_batch_t0 | truncated_batch_t0)) * policy_batch_t2 *
                                 target_EFEs_batch_t2).sum(-1).unsqueeze(1)
             
             # Determine the batch of bootstrapped estimates of the EFEs:
-            EFE_estimate_batch = -reward_batch_t1 + pred_error_batch_t0t1 + self.Beta * weighted_targets
+            EFE_estimate_batch = -reward_batch_t1 + pred_error_batch_t2t1 + self.Beta * weighted_targets
         
         # Determine the EFE at time t1 according to the value network:
         EFE_batch_t1 = self.value_net(state_batch_t1).gather(1, action_batch_t1)
@@ -991,7 +1248,8 @@ class Agent():
         
         return value_net_loss
     
-    def compute_VFE(self, vae_loss, state_batch_t1, pred_error_batch_t0t1):
+    # def compute_VFE(self, vae_loss, state_batch_t1, pred_error_batch_t0t1):
+    def compute_VFE(self, vae_loss, state_batch_t1, pred_error_batch_t2t1):
         
         # Determine the action distribution for time t1:
         policy_batch_t1 = self.policy_net(state_batch_t1)
@@ -1009,7 +1267,7 @@ class Agent():
         entropy_batch = -(policy_batch_t1 * torch.log(policy_batch_t1)).sum(-1).unsqueeze(1)
         
         # Determine the VFE, then take the mean over all batch samples:
-        VFE_batch = vae_loss + pred_error_batch_t0t1 + (energy_term_batch - entropy_batch)
+        VFE_batch = vae_loss + pred_error_batch_t2t1 + (energy_term_batch - entropy_batch)
 
         VFE = torch.mean(VFE_batch)
         
@@ -1032,8 +1290,19 @@ class Agent():
         # obs_batch_t1, state_mu_batch_t1,
         # state_logvar_batch_t1, z_batch_t1) = self.get_mini_batches()
 
+        # # OG VERSION OF TERMINATED AND TRUNCATED:
+        # (state_batch_t1, state_batch_t2, action_batch_t1,
+        # reward_batch_t1, terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
+        # obs_batch_t1, state_mu_batch_t1,
+        # state_logvar_batch_t1, z_batch_t1) = self.get_mini_batches()
+
+        # (state_batch_t1, state_batch_t2, action_batch_t1,
+        # reward_batch_t1, terminated_batch_t0, truncated_batch_t0, pred_error_batch_t0t1,
+        # obs_batch_t1, state_mu_batch_t1,
+        # state_logvar_batch_t1, z_batch_t1) = self.get_mini_batches()
+
         (state_batch_t1, state_batch_t2, action_batch_t1,
-        reward_batch_t1, terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1,
+        reward_batch_t1, terminated_batch_t0, truncated_batch_t0, pred_error_batch_t2t1,
         obs_batch_t1, state_mu_batch_t1,
         state_logvar_batch_t1, z_batch_t1) = self.get_mini_batches()
         
@@ -1046,14 +1315,22 @@ class Agent():
         # value_net_loss = self.compute_value_net_loss(state_batch_t1, state_batch_t2,
         #                    action_batch_t1, reward_batch_t1,
         #                    done_batch_t2, pred_error_batch_t0t1)
+
+        # # OG VERSION OF TERMINATED AND TRUNCATED:
+        # value_net_loss = self.compute_value_net_loss(
+        #     state_batch_t1, state_batch_t2,
+        #     action_batch_t1, reward_batch_t1,
+        #     terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1
+        # )
+
         value_net_loss = self.compute_value_net_loss(
             state_batch_t1, state_batch_t2,
             action_batch_t1, reward_batch_t1,
-            terminated_batch_t2, truncated_batch_t2, pred_error_batch_t0t1
+            terminated_batch_t0, truncated_batch_t0, pred_error_batch_t2t1
         )
         
         # Compute the variational free energy:
-        VFE = self.compute_VFE(vae_loss, state_batch_t1.detach(), pred_error_batch_t0t1)
+        VFE = self.compute_VFE(vae_loss, state_batch_t1.detach(), pred_error_batch_t2t1)
         
         # Reset the gradients:
         self.vae.optimizer.zero_grad()
