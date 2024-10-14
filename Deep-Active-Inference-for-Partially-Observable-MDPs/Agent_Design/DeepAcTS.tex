@@ -148,6 +148,58 @@ Thus, equation \ref{eq:true_VFE} becomes:
     \end{aligned}
 \end{equation}
 
+COMMENT:
+
+I think I actually want to train on this free-energy loss (Catal et al):
+
+\begin{equation}
+    \begin{aligned}
+        \label{eq:approx_VFE_Catal}
+        \mathcal{L} &= \sum_{\tau} D_{\text{KL}}\left[q_{\theta}(s_{\tau} \ | \ \hat{s}_{\tau - 1}^{(\theta)}, \hat{a}_{\tau - 1}^{(\mathcal{D})}, \hat{o}_{\tau}^{(\mathcal{D})}) \ \| \ p_{\phi}(s_{\tau} \ | \ \hat{s}_{\tau - 1}^{(\theta)}, \hat{a}_{\tau - 1}^{(\mathcal{D})})\right] \\
+        &\quad - \log\left(p_{\nu}(o_{\tau} | \hat{s}_{\tau}^{(\theta)})\right)
+    \end{aligned}
+\end{equation}
+
+
+% \begin{equation}
+%     \begin{aligned}
+%         \label{eq:approx_VFE_Catal}
+%         \mathcal{L} &= \sum_{\tau = 1}D_{\text{KL}}[q_{\theta}(s_{\tau} \ | \ \hat{s}_{\tau - 1}^{(\theta)}, \hat{a}_{\tau - 1}^{(\mathcal{D})}, \hat{o}_{\tau}^{(\mathcal{D})}) \ || \ p_{\phi}(s_{\tau} \ | \ \hat{s}_{\tau - 1}^{(\theta)}, \hat{a}_{\tau - 1}^{(\mathcal{D})})] - \log{(p_{\nu}(o_{\tau} | \hat{s}_{\tau}^{(\theta)}))\\
+%     \end{aligned}
+% \end{equation}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \section{Training Phase}
 \label{sec:training_phase}

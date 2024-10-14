@@ -122,7 +122,7 @@ class ReplayMemory():
                     break
 
         return obs_batch, action_batch, reward_batch, terminated_batch, truncated_batch, hidden_state_batch
-    
+
 class Model(nn.Module):
     
     def __init__(self, n_inputs, n_outputs, n_hidden=64, lr=1e-4, softmax=False, device='cuda:0'):
